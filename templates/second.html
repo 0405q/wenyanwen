@@ -1,0 +1,2043 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>文言文智能助手 - 传承经典，智解古文</title>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&family=Noto+Serif+SC:wght@400;700&display=swap">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary-color: #8b4513;
+            --secondary-color: #d4a76a;
+            --accent-color: #a0522d;
+            --light-bg: #f9f3e9;
+            --dark-text: #3e2723;
+            --light-text: #5d4037;
+            --border-color: #d7ccc8;
+            --shadow: 0 4px 12px rgba(139, 69, 19, 0.1);
+            --transition: all 0.3s ease;
+        }
+
+        body {
+            font-family: 'Noto Serif SC', serif;
+            background-color: var(--light-bg);
+            color: var(--dark-text);
+            line-height: 1.6;
+            background-image: url("data:image/svg+xml,%3Csvg width='100' height='100' viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M11 18c3.866 0 7-3.134 7-7s-3.134-7-7-7-7 3.134-7 7 3.134 7 7 7zm48 25c3.866 0 7-3.134 7-7s-3.134-7-7-7-7 3.134-7 7 3.134 7 7 7zm-43-7c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zm63 31c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zM34 90c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zm56-76c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zM12 86c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm28-65c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm23-11c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm-6 60c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm29 22c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zM32 63c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm57-13c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm-9-21c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM60 91c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM35 41c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM12 60c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2z' fill='%23d4a76a' fill-opacity='0.1' fill-rule='evenodd'/%3E%3C/svg%3E");
+            position: relative;
+            min-height: 100vh;
+        }
+
+        /* ===== 粒子背景 Canvas 样式 ===== */
+        #particle-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            pointer-events: none;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 0 20px;
+            position: relative;
+            z-index: 1;
+        }
+
+        /* 头部样式 */
+        header {
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--accent-color) 100%);
+            color: white;
+            padding: 1.5rem 0;
+            box-shadow: var(--shadow);
+            position: relative;
+            overflow: hidden;
+        }
+
+        header::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: url("data:image/svg+xml,%3Csvg width='100' height='100' viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M11 18c3.866 0 7-3.134 7-7s-3.134-7-7-7-7 3.134-7 7 3.134 7 7 7zm48 25c3.866 0 7-3.134 7-7s-3.134-7-7-7-7 3.134-7 7 3.134 7 7 7zm-43-7c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zm63 31c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zM34 90c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zm56-76c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zM12 86c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm28-65c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm23-11c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm-6 60c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm29 22c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zM32 63c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm57-13c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm-9-21c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM60 91c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM35 41c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM12 60c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2z' fill='%23ffffff' fill-opacity='0.05' fill-rule='evenodd'/%3E%3C/svg%3E");
+            opacity: 0.3;
+        }
+
+        .header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: relative;
+            z-index: 2;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .logo-icon {
+            font-size: 2.5rem;
+            color: var(--secondary-color);
+        }
+
+        .logo-text h1 {
+            font-family: 'Ma Shan Zheng', cursive;
+            font-size: 2.2rem;
+            font-weight: normal;
+            letter-spacing: 2px;
+        }
+
+        .logo-text p {
+            font-size: 0.9rem;
+            opacity: 0.9;
+        }
+
+        nav ul {
+            display: flex;
+            list-style: none;
+            gap: 30px;
+        }
+
+        nav a {
+            color: white;
+            text-decoration: none;
+            font-size: 1.1rem;
+            padding: 8px 12px;
+            border-radius: 4px;
+            transition: var(--transition);
+            position: relative;
+        }
+
+        nav a:hover, nav a.active {
+            background-color: rgba(255, 255, 255, 0.15);
+        }
+
+        nav a::after {
+            content: '';
+            position: absolute;
+            bottom: -5px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 0;
+            height: 2px;
+            background-color: var(--secondary-color);
+            transition: var(--transition);
+        }
+
+        nav a:hover::after, nav a.active::after {
+            width: 80%;
+        }
+
+        .user-actions {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+        }
+
+        .btn-login, .btn-register {
+            padding: 8px 20px;
+            border-radius: 20px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: var(--transition);
+            border: none;
+            font-family: 'Noto Serif SC', serif;
+        }
+
+        .btn-login {
+            background-color: transparent;
+            border: 1px solid rgba(255, 255, 255, 0.7);
+            color: white;
+        }
+
+        .btn-register {
+            background-color: var(--secondary-color);
+            color: var(--primary-color);
+        }
+
+        .btn-login:hover {
+            background-color: rgba(255, 255, 255, 0.1);
+        }
+
+        .btn-register:hover {
+            background-color: #e6b870;
+        }
+
+        /* 主内容区 */
+        .main-content {
+            display: flex;
+            gap: 30px;
+            margin-top: 30px;
+            margin-bottom: 40px;
+        }
+
+        /* 左侧工作区 */
+        .workspace {
+            flex: 3;
+            background-color: white;
+            border-radius: 12px;
+            box-shadow: var(--shadow);
+            overflow: hidden;
+        }
+
+        .workspace-header {
+            background: linear-gradient(to right, var(--primary-color), var(--accent-color));
+            color: white;
+            padding: 18px 25px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .workspace-header h2 {
+            font-size: 1.5rem;
+            font-weight: 700;
+        }
+
+        .mode-selector {
+            display: flex;
+            gap: 10px;
+        }
+
+        .mode-btn {
+            padding: 8px 16px;
+            background-color: rgba(255, 255, 255, 0.2);
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: var(--transition);
+            font-family: 'Noto Serif SC', serif;
+        }
+
+        .mode-btn:hover {
+            background-color: rgba(255, 255, 255, 0.3);
+        }
+
+        .mode-btn.active {
+            background-color: white;
+            color: var(--primary-color);
+        }
+
+        .workspace-body {
+            padding: 25px;
+            display: flex;
+            flex-direction: column;
+            gap: 25px;
+        }
+
+        .input-section, .output-section {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 10px;
+        }
+
+        .section-header h3 {
+            font-size: 1.3rem;
+            color: var(--accent-color);
+        }
+
+        .actions {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .action-btn {
+            padding: 8px 15px;
+            background-color: var(--light-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            cursor: pointer;
+            transition: var(--transition);
+            font-family: 'Noto Serif SC', serif;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .action-btn:hover {
+            background-color: var(--primary-color);
+            color: white;
+            border-color: var(--primary-color);
+        }
+
+        .action-btn.primary {
+            background-color: var(--primary-color);
+            color: white;
+            border-color: var(--primary-color);
+        }
+
+        .action-btn.primary:hover {
+            background-color: var(--accent-color);
+            border-color: var(--accent-color);
+        }
+
+        textarea {
+            width: 100%;
+            min-height: 200px;
+            padding: 20px;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            font-family: 'Noto Serif SC', serif;
+            font-size: 1.1rem;
+            line-height: 1.8;
+            resize: vertical;
+            transition: var(--transition);
+            background-color: #fffefc;
+        }
+
+        textarea:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(139, 69, 19, 0.1);
+        }
+
+        .output-area {
+            min-height: 200px;
+            padding: 20px;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            background-color: #fffefc;
+            font-size: 1.1rem;
+            line-height: 1.8;
+        }
+
+        .translation-options {
+            display: flex;
+            gap: 15px;
+            padding: 15px 0;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .option {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+        }
+
+        .option input {
+            cursor: pointer;
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 20px;
+            color: var(--accent-color);
+        }
+
+        .loading.active {
+            display: block;
+        }
+
+        .loading-spinner {
+            display: inline-block;
+            width: 30px;
+            height: 30px;
+            border: 3px solid rgba(139, 69, 19, 0.2);
+            border-radius: 50%;
+            border-top-color: var(--primary-color);
+            animation: spin 1s linear infinite;
+            margin-bottom: 10px;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* 右侧功能面板 */
+        .sidebar {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 30px;
+        }
+
+        .feature-card {
+            background-color: white;
+            border-radius: 12px;
+            box-shadow: var(--shadow);
+            overflow: hidden;
+        }
+
+        .feature-header {
+            background-color: var(--primary-color);
+            color: white;
+            padding: 15px 20px;
+            font-size: 1.2rem;
+        }
+
+        .feature-body {
+            padding: 20px;
+        }
+
+        .classic-quote {
+            font-style: italic;
+            font-size: 1.1rem;
+            line-height: 1.7;
+            color: var(--accent-color);
+            padding: 15px;
+            border-left: 4px solid var(--secondary-color);
+            background-color: #fdf8f0;
+            margin-bottom: 15px;
+        }
+
+        .quote-author {
+            text-align: right;
+            font-size: 0.9rem;
+            color: var(--light-text);
+        }
+
+        .feature-list {
+            list-style: none;
+        }
+
+        .feature-list li {
+            padding: 12px 0;
+            border-bottom: 1px dashed var(--border-color);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .feature-list li:last-child {
+            border-bottom: none;
+        }
+
+        .feature-icon {
+            color: var(--primary-color);
+            font-size: 1.2rem;
+            width: 24px;
+        }
+
+        /* 底部 */
+        footer {
+            background-color: var(--primary-color);
+            color: rgba(255, 255, 255, 0.85);
+            padding: 40px 0 20px;
+            margin-top: 40px;
+        }
+
+        .footer-content {
+            display: flex;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 40px;
+            margin-bottom: 30px;
+        }
+
+        .footer-section {
+            flex: 1;
+            min-width: 250px;
+        }
+
+        .footer-section h3 {
+            color: white;
+            margin-bottom: 20px;
+            font-size: 1.3rem;
+            position: relative;
+            padding-bottom: 10px;
+        }
+
+        .footer-section h3::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 50px;
+            height: 2px;
+            background-color: var(--secondary-color);
+        }
+
+        .footer-links {
+            list-style: none;
+        }
+
+        .footer-links li {
+            margin-bottom: 12px;
+        }
+
+        .footer-links a {
+            color: rgba(255, 255, 255, 0.75);
+            text-decoration: none;
+            transition: var(--transition);
+        }
+
+        .footer-links a:hover {
+            color: white;
+            padding-left: 5px;
+        }
+
+        .copyright {
+            text-align: center;
+            padding-top: 20px;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            font-size: 0.9rem;
+            color: rgba(255, 255, 255, 0.6);
+        }
+
+        /* 响应式设计 */
+        @media (max-width: 1024px) {
+            .main-content {
+                flex-direction: column;
+            }
+
+            nav ul {
+                gap: 15px;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .header-content {
+                flex-direction: column;
+                gap: 20px;
+            }
+
+            nav ul {
+                flex-wrap: wrap;
+                justify-content: center;
+            }
+
+            .user-actions {
+                margin-top: 10px;
+            }
+
+            .workspace-header {
+                flex-direction: column;
+                gap: 15px;
+                align-items: flex-start;
+            }
+
+            .mode-selector {
+                width: 100%;
+                justify-content: flex-start;
+            }
+
+            .actions {
+                justify-content: center;
+            }
+        }
+
+        /* 工具提示 */
+        .tooltip {
+            position: relative;
+            display: inline-block;
+        }
+
+        .tooltip .tooltip-text {
+            visibility: hidden;
+            width: 200px;
+            background-color: var(--dark-text);
+            color: white;
+            text-align: center;
+            border-radius: 6px;
+            padding: 10px;
+            position: absolute;
+            z-index: 100;
+            bottom: 125%;
+            left: 50%;
+            transform: translateX(-50%);
+            opacity: 0;
+            transition: opacity 0.3s;
+            font-size: 0.9rem;
+            line-height: 1.4;
+        }
+
+        .tooltip .tooltip-text::after {
+            content: "";
+            position: absolute;
+            top: 100%;
+            left: 50%;
+            margin-left: -5px;
+            border-width: 5px;
+            border-style: solid;
+            border-color: var(--dark-text) transparent transparent transparent;
+        }
+
+        .tooltip:hover .tooltip-text {
+            visibility: visible;
+            opacity: 1;
+        }
+
+        /* 断句标记 */
+        .punctuation-mark {
+            display: inline-block;
+            width: 30px;
+            height: 30px;
+            line-height: 30px;
+            text-align: center;
+            background-color: var(--secondary-color);
+            color: white;
+            border-radius: 50%;
+            margin: 0 5px;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .punctuation-mark:hover {
+            background-color: var(--primary-color);
+            transform: scale(1.1);
+        }
+
+        /* 高亮文本 */
+        .highlight {
+            background-color: rgba(212, 167, 106, 0.3);
+            padding: 2px 4px;
+            border-radius: 3px;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .highlight:hover {
+            background-color: rgba(139, 69, 19, 0.2);
+        }
+
+        /* 分析结果样式 */
+        .analysis-section {
+            margin: 15px 0;
+            padding: 15px;
+            background-color: #f9f3e9;
+            border-radius: 8px;
+            border-left: 4px solid var(--secondary-color);
+        }
+
+        .analysis-section h4 {
+            color: var(--primary-color);
+            margin-bottom: 10px;
+            font-size: 1.1rem;
+        }
+
+        .analysis-list {
+            list-style-position: inside;
+            padding-left: 10px;
+        }
+
+        .analysis-list li {
+            margin: 8px 0;
+            padding: 5px 0;
+        }
+
+        .analysis-term {
+            font-weight: bold;
+            color: var(--accent-color);
+        }
+
+        /* 提示消息样式 */
+        .toast {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background-color: var(--primary-color);
+            color: white;
+            padding: 12px 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            z-index: 1000;
+            opacity: 0;
+            transform: translateY(20px);
+            transition: all 0.3s ease;
+        }
+
+        .toast.show {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        /* 模式选择器补充 */
+        .mode-selector-container {
+            display: flex;
+            gap: 10px;
+        }
+
+        .analysis-subsection {
+            margin: 15px 0;
+            padding: 12px;
+            background-color: #f5f1e9;
+            border-radius: 6px;
+            border-left: 3px solid var(--secondary-color);
+        }
+
+        .analysis-subsection h5 {
+            color: var(--accent-color);
+            margin-bottom: 8px;
+            font-size: 1rem;
+            display: flex;
+            align-items: center;
+        }
+
+        .function-words-analysis {
+            background-color: #f9f7f2;
+            padding: 15px;
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+        }
+
+        /* ==================== 视觉升级：新增样式 ==================== */
+
+        /* 1. 色彩变量扩展（宣纸白、墨黑、朱砂红、金棕色） */
+        :root {
+            --paper-white: #fffef9;
+            --ink-black: #2c2419;
+            --cinnabar: #c45c3e;
+            --gold-brown: #b8860b;
+            --gradient-warm: linear-gradient(135deg, #8b4513 0%, #a0522d 50%, #cd853f 100%);
+        }
+
+        /* 2. 头部区域优化：微光渐变动画 */
+        header {
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--accent-color) 50%, #cd853f 100%);
+            background-size: 200% 200%;
+            animation: headerShimmer 8s ease-in-out infinite;
+        }
+        @keyframes headerShimmer {
+            0%, 100% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+        }
+
+        /* Logo 悬浮微动效 */
+        .logo {
+            animation: logoFloat 4s ease-in-out infinite;
+        }
+        @keyframes logoFloat {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-3px); }
+        }
+
+        /* 导航栏下划线动画增强 */
+        nav a::after {
+            height: 2px;
+            background: linear-gradient(90deg, transparent, var(--secondary-color), transparent);
+        }
+        nav a:hover::after, nav a.active::after {
+            width: 100%;
+        }
+
+        /* 3. 工作区卡片优化：宣纸质感 + 精致阴影 */
+        .workspace, .feature-card {
+            box-shadow: 0 2px 8px rgba(139, 69, 19, 0.08),
+                        0 8px 24px rgba(139, 69, 19, 0.12),
+                        inset 0 1px 0 rgba(255, 255, 255, 0.6);
+            background: linear-gradient(180deg, #fffefc 0%, #fdf9f2 100%);
+            position: relative;
+        }
+        .workspace::before, .feature-card::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            border-radius: inherit;
+            background: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.03'/%3E%3C/svg%3E");
+            pointer-events: none;
+        }
+
+        /* 输入框/输出区域聚焦古铜色光晕 */
+        textarea:focus, .output-area:focus-within {
+            outline: none;
+            border-color: var(--secondary-color);
+            box-shadow: 0 0 0 3px rgba(212, 167, 106, 0.25),
+                        0 0 20px rgba(139, 69, 19, 0.15);
+        }
+        .output-area {
+            transition: box-shadow 0.3s ease, border-color 0.3s ease;
+        }
+
+        /* 按钮 hover 增强：缩放 + 颜色渐变 */
+        .action-btn, .mode-btn, .btn-login, .btn-register {
+            transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.3s ease;
+        }
+        .action-btn:hover, .mode-btn:hover {
+            transform: scale(1.03);
+            box-shadow: 0 4px 12px rgba(139, 69, 19, 0.2);
+        }
+        .action-btn.primary:hover {
+            transform: scale(1.03);
+            box-shadow: 0 4px 16px rgba(139, 69, 19, 0.35);
+        }
+        .action-btn:active, .mode-btn:active {
+            transform: scale(0.98);
+        }
+
+        /* 涟漪效果容器 */
+        .action-btn, .mode-btn {
+            position: relative;
+            overflow: hidden;
+        }
+        .ripple {
+            position: absolute;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.4);
+            transform: scale(0);
+            animation: rippleExpand 0.6s ease-out;
+            pointer-events: none;
+        }
+        @keyframes rippleExpand {
+            to { transform: scale(4); opacity: 0; }
+        }
+
+        /* 4. 字体与排版微调 */
+        .section-header h3, .workspace-header h2 {
+            font-weight: 700;
+            letter-spacing: 0.5px;
+        }
+        .analysis-section h4 {
+            font-weight: 600;
+            font-size: 1.15rem;
+        }
+        .analysis-subsection h5 {
+            font-weight: 600;
+        }
+
+        /* 虚词分析标签化设计 */
+        .analysis-list li {
+            padding: 10px 14px;
+            margin-bottom: 8px;
+            background: linear-gradient(90deg, rgba(212, 167, 106, 0.15) 0%, transparent 100%);
+            border-radius: 8px;
+            border-left: 3px solid var(--secondary-color);
+        }
+        .analysis-term {
+            display: inline-block;
+            padding: 2px 10px;
+            background: linear-gradient(135deg, var(--secondary-color), var(--accent-color));
+            color: white;
+            border-radius: 4px;
+            margin-right: 8px;
+            font-size: 0.95em;
+        }
+
+        /* 5. 加载动画升级 */
+        .loading-spinner {
+            width: 36px;
+            height: 36px;
+            border-width: 3px;
+            border-top-color: var(--primary-color);
+            border-right-color: var(--secondary-color);
+            animation: spin 1s cubic-bezier(0.68, -0.55, 0.27, 1.55) infinite;
+        }
+        .loading.active p {
+            animation: pulse 1.5s ease-in-out infinite;
+        }
+        @keyframes pulse {
+            0%, 100% { opacity: 0.8; }
+            50% { opacity: 1; }
+        }
+
+        /* 6. Toast 复制成功反馈增强 */
+        .toast.show {
+            box-shadow: 0 8px 24px rgba(139, 69, 19, 0.3);
+            animation: toastIn 0.3s ease-out;
+        }
+        .toast.copy-success {
+            background: linear-gradient(135deg, #2e7d32, #388e3c);
+        }
+        @keyframes toastIn {
+            from { transform: translateY(20px) scale(0.95); opacity: 0; }
+            to { transform: translateY(0) scale(1); opacity: 1; }
+        }
+
+        /* 今日名句卡片过渡动画 */
+        .classic-quote {
+            transition: opacity 0.4s ease;
+        }
+        .classic-quote.quote-transition {
+            opacity: 0;
+        }
+
+        /* 7. 响应式微调：粒子在移动端已通过 JS 降低数量 */
+        @media (max-width: 768px) {
+            .actions { gap: 8px; }
+            .action-btn { padding: 10px 14px; font-size: 0.95rem; }
+            .workspace, .feature-card { box-shadow: 0 4px 16px rgba(139, 69, 19, 0.1); }
+        }
+
+    </style>
+</head>
+<body>
+    <!-- 水墨风格粒子背景 Canvas（z-index 最低，不影响内容可读性） -->
+    <canvas id="particle-canvas" aria-hidden="true"></canvas>
+
+    <!-- 头部导航 -->
+    <header>
+        <div class="container">
+            <div class="header-content">
+                <div class="logo">
+                    <div class="logo-icon">
+                        <i class="fas fa-scroll"></i>
+                    </div>
+                    <div class="logo-text">
+                        <h1>文言文智能助手</h1>
+                        <p>传承经典 · 智解古文</p>
+                    </div>
+                </div>
+
+                <nav>
+                    <ul>
+                        <li><a href="/" class="active">首页</a></li>
+                        <li><a href="/resource-library">资源库</a></li>
+                    </ul>
+                </nav>
+            </div>
+        </div>
+    </header>
+
+    <!-- 主内容区 -->
+    <div class="container">
+        <div class="main-content">
+            <!-- 左侧工作区 -->
+            <div class="workspace">
+                <div class="workspace-header">
+                    <h2>文言文智能处理工作台</h2>
+                </div>
+
+                <div class="workspace-body">
+                    <!-- 输入区域 -->
+                    <div class="input-section">
+                        <div class="section-header">
+                            <div class="actions">
+                                <button class="action-btn tooltip" id="sample-btn">
+                                    <i class="fas fa-book-open"></i> 示例
+                                    <span class="tooltip-text">加载示例古文，体验翻译与断句功能</span>
+                                </button>
+                                <button class="action-btn tooltip" id="clear-btn">
+                                    <i class="fas fa-broom"></i> 清空
+                                    <span class="tooltip-text">清空输入框中的所有内容</span>
+                                </button>
+                            </div>
+                        </div>
+
+                        <textarea id="classic-input" placeholder="请输入或粘贴您要翻译/断句的古文...">晋太元中，武陵人捕鱼为业。缘溪行，忘路之远近。忽逢桃花林，夹岸数百步，中无杂树，芳草鲜美，落英缤纷，渔人甚异之，复前行，欲穷其林。</textarea>
+
+                        <div class="actions">
+                            <button class="action-btn primary" id="translate-btn">
+                                <i class="fas fa-language"></i> 翻译为现代文
+                            </button>
+                            <button class="action-btn" id="punctuate-btn">
+                                <i class="fas fa-cut"></i> 智能断句
+                            </button>
+                            <button class="action-btn" id="function-word-btn">
+                                <i class="fas fa-search-plus"></i> 虚词分析
+                            </button>
+                            <button class="action-btn" id="sentence-pattern-btn">
+                                <i class="fas fa-paragraph"></i> 句式分析
+                            </button>
+                            <button class="action-btn" id="listen-btn">
+                                <i class="fas fa-volume-up"></i> 朗诵
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- 输出区域 -->
+                    <div class="output-section">
+                        <div class="section-header">
+                            <h3>处理结果</h3>
+                            <div class="actions">
+                                <button class="action-btn tooltip" id="copy-btn">
+                                    <i class="fas fa-copy"></i> 复制结果
+                                    <span class="tooltip-text">将处理结果复制到剪贴板</span>
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="loading" id="loading-indicator">
+                            <div class="loading-spinner"></div>
+                            <p>正在智能处理中，请稍候...</p>
+                        </div>
+
+                        <div class="output-area" id="output-area" tabindex="0">
+                            <p>在这里将会显示古文的现代文翻译或断句结果。</p>
+                            <p>点击上方的"翻译为现代文"或"智能断句"按钮开始体验。</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 右侧功能面板 -->
+            <div class="sidebar">
+                <!-- 今日名句 -->
+                <div class="feature-card">
+                    <div class="feature-header">
+                        <i class="fas fa-quote-left"></i> 今日名句
+                    </div>
+                    <div class="feature-body">
+                        <div class="classic-quote" id="daily-quote">
+                            "山不在高，有仙则名。水不在深，有龙则灵。"
+                        </div>
+                        <div class="quote-author" id="quote-author">
+                            —— 刘禹锡《陋室铭》
+                        </div>
+                        <button class="action-btn" id="next-quote" style="width: 100%; margin-top: 15px;">
+                            <i class="fas fa-random"></i> 随机名句
+                        </button>
+                    </div>
+                </div>
+
+                <!-- 特色功能 -->
+                <div class="feature-card">
+                    <div class="feature-header">
+                        <i class="fas fa-star"></i> 特色功能
+                    </div>
+                    <div class="feature-body">
+                        <ul class="feature-list">
+                            <li>
+                                <div class="feature-icon">
+                                    <i class="fas fa-exchange-alt"></i>
+                                </div>
+                                <div>
+                                    <strong>古文翻译</strong>
+                                    <p>智能转换为现代文，支持直译/意译模式</p>
+                                </div>
+                            </li>
+                            <li>
+                                <div class="feature-icon">
+                                    <i class="fas fa-cut"></i>
+                                </div>
+                                <div>
+                                    <strong>智能断句</strong>
+                                    <p>自动为无标点古文添加句读，支持手动调整</p>
+                                </div>
+                            </li>
+                            <li>
+                                <div class="feature-icon">
+                                    <i class="fas fa-search-plus"></i>
+                                </div>
+                                <div>
+                                    <strong>虚词分析</strong>
+                                    <p>识别并解析文中虚词，说明其用法和作用</p>
+                                </div>
+                            </li>
+                            <li>
+                                <div class="feature-icon">
+                                    <i class="fas fa-paragraph"></i>
+                                </div>
+                                <div>
+                                    <strong>句式分析</strong>
+                                    <p>分析文言句式结构，讲解特殊句式用法</p>
+                                </div>
+                            </li>
+                            <li>
+                                <div class="feature-icon">
+                                    <i class="fas fa-volume-up"></i>
+                                </div>
+                                <div>
+                                    <strong>诗文朗诵</strong>
+                                    <p>标准普通话朗读，感受古诗文韵律之美</p>
+                                </div>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- 快捷操作 -->
+                <div class="feature-card">
+                    <div class="feature-header">
+                        <i class="fas fa-bolt"></i> 快捷操作
+                    </div>
+                    <div class="feature-body">
+                        <button class="action-btn" style="width: 100%;" id="share-btn">
+                            <i class="fas fa-share-alt"></i> 分享名句
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 底部 -->
+    <footer>
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-section">
+                    <h3>文言文智能助手</h3>
+                    <p>利用人工智能技术，传承与解读中华经典古诗文，让传统文化在现代科技中焕发新生。</p>
+                    <p>适合学生、教师、研究者及所有传统文化爱好者使用。</p>
+                </div>
+
+                <div class="footer-section">
+                    <h3>功能导航</h3>
+                    <ul class="footer-links">
+                        <li><a href="#">古文翻译</a></li>
+                        <li><a href="#">智能断句</a></li>
+                        <li><a href="#">虚词分析</a></li>
+                        <li><a href="#">句式分析</a></li>
+                        <li><a href="#">诗文朗诵</a></li>
+                    </ul>
+                </div>
+
+                <div class="footer-section">
+                    <h3>资源库</h3>
+                    <ul class="footer-links">
+                        <li><a href="/resource-library">唐诗三百首</a></li>
+                        <li><a href="/resource-library">宋词精选</a></li>
+                        <li><a href="/resource-library">古文观止</a></li>
+                        <li><a href="/resource-library">四书五经</a></li>
+                    </ul>
+                </div>
+
+                <div class="footer-section">
+                    <h3>联系我们</h3>
+                    <ul class="footer-links">
+                        <li><a href="#">反馈建议</a></li>
+                        <li><a href="#">合作联系</a></li>
+                        <li><a href="#">关于我们</a></li>
+                        <li><a href="#">隐私政策</a></li>
+                        <li><a href="#">帮助文档</a></li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="copyright">
+                <p>&copy; 2026 文言文智能助手 版权所有 | 传承经典文化，弘扬中华智慧</p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- 提示消息容器 -->
+    <div class="toast" id="toast"></div>
+
+    <script>
+        /* ============================================
+         * 水墨风格粒子背景特效 ParticleBackground
+         * 古风书卷气息，粒子缓慢飘动、消散、重现
+         * 鼠标互动：粒子轻微远离光标
+         * 移动端自动降低粒子数量
+         * ============================================ */
+        (function() {
+            'use strict';
+            var canvas = document.getElementById('particle-canvas');
+            if (!canvas) return;
+
+            var ctx = canvas.getContext('2d');
+            var particles = [];
+            var mouseX = -999;
+            var mouseY = -999;
+            var animationId = null;
+            var isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+            var particleCount = isMobile ? 20 : 60;
+
+            function Particle() {
+                this.x = Math.random() * (canvas.width || window.innerWidth);
+                this.y = Math.random() * (canvas.height || window.innerHeight);
+                this.vx = (Math.random() - 0.5) * 0.3;
+                this.vy = (Math.random() - 0.5) * 0.3 - 0.1;
+                this.size = Math.random() * 2 + 0.5;
+                this.alpha = Math.random() * 0.3 + 0.1;
+                this.baseAlpha = this.alpha;
+                this.color = 'rgba(212, 167, 106, ';
+            }
+
+            function resize() {
+                var w = window.innerWidth;
+                var h = window.innerHeight;
+                canvas.width = w;
+                canvas.height = h;
+                if (particles.length === 0) {
+                    for (var i = 0; i < particleCount; i++) {
+                        particles.push(new Particle());
+                    }
+                }
+            }
+
+            function dist(ax, ay, bx, by) {
+                return Math.sqrt((ax - bx) * (ax - bx) + (ay - by) * (ay - by));
+            }
+
+            function animate() {
+                var w = canvas.width;
+                var h = canvas.height;
+                ctx.clearRect(0, 0, w, h);
+
+                var mouseRadius = 120;
+                particles.forEach(function(p) {
+                    var dx = p.x - mouseX;
+                    var dy = p.y - mouseY;
+                    var d = dist(p.x, p.y, mouseX, mouseY);
+                    if (d < mouseRadius && mouseX > 0) {
+                        var force = (mouseRadius - d) / mouseRadius * 0.5;
+                        p.vx += (dx / d) * force;
+                        p.vy += (dy / d) * force;
+                    }
+                    p.x += p.vx;
+                    p.y += p.vy;
+                    p.vx *= 0.99;
+                    p.vy *= 0.99;
+                    p.vx = Math.max(-0.5, Math.min(0.5, p.vx));
+                    p.vy = Math.max(-0.5, Math.min(0.5, p.vy));
+
+                    if (p.x < 0 || p.x > w) p.vx *= -1;
+                    if (p.y < 0 || p.y > h) { p.y = 0; p.vy = Math.random() * 0.2; }
+                    p.alpha = p.baseAlpha * (0.7 + 0.3 * Math.sin(Date.now() * 0.001 + p.x * 0.01));
+
+                    ctx.beginPath();
+                    ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+                    ctx.fillStyle = p.color + p.alpha + ')';
+                    ctx.fill();
+                });
+
+                animationId = requestAnimationFrame(animate);
+            }
+
+            function init() {
+                resize();
+                window.addEventListener('resize', function() {
+                    resize();
+                });
+                document.addEventListener('mousemove', function(e) {
+                    mouseX = e.clientX;
+                    mouseY = e.clientY;
+                });
+                document.addEventListener('mouseleave', function() {
+                    mouseX = -999;
+                    mouseY = -999;
+                });
+                animate();
+            }
+
+            if (document.readyState === 'loading') {
+                document.addEventListener('DOMContentLoaded', init);
+            } else {
+                init();
+            }
+        })();
+
+        /* ===== 涟漪效果：为按钮添加点击涟漪 ===== */
+        function createRipple(e) {
+            var btn = e.currentTarget;
+            if (!btn || !btn.classList.contains('action-btn') && !btn.classList.contains('mode-btn')) return;
+            var rect = btn.getBoundingClientRect();
+            var x = e.clientX - rect.left;
+            var y = e.clientY - rect.top;
+            var ripple = document.createElement('span');
+            ripple.className = 'ripple';
+            ripple.style.left = x + 'px';
+            ripple.style.top = y + 'px';
+            ripple.style.width = ripple.style.height = '20px';
+            ripple.style.marginLeft = ripple.style.marginTop = '-10px';
+            btn.appendChild(ripple);
+            setTimeout(function() { if (ripple.parentNode) ripple.parentNode.removeChild(ripple); }, 600);
+        }
+        document.addEventListener('DOMContentLoaded', function() {
+            document.querySelectorAll('.action-btn, .mode-btn').forEach(function(btn) {
+                btn.addEventListener('click', createRipple);
+            });
+        });
+
+        // 示例古文数据
+        const sampleTexts = [
+            {
+                title: "桃花源记",
+                content: "晋太元中，武陵人捕鱼为业。缘溪行，忘路之远近。忽逢桃花林，夹岸数百步，中无杂树，芳草鲜美，落英缤纷，渔人甚异之，复前行，欲穷其林。"
+            },
+            {
+                title: "陋室铭",
+                content: "山不在高，有仙则名。水不在深，有龙则灵。斯是陋室，惟吾德馨。苔痕上阶绿，草色入帘青。谈笑有鸿儒，往来无白丁。可以调素琴，阅金经。无丝竹之乱耳，无案牍之劳形。南阳诸葛庐，西蜀子云亭。孔子云：何陋之有？"
+            },
+            {
+                title: "岳阳楼记",
+                content: "庆历四年春，滕子京谪守巴陵郡。越明年，政通人和，百废具兴，乃重修岳阳楼，增其旧制，刻唐贤今人诗赋于其上，属予作文以记之。"
+            }
+        ];
+
+        // 今日名句数据
+        const dailyQuotes = [
+            {text: "山不在高，有仙则名。水不在深，有龙则灵。", author: "刘禹锡《陋室铭》"},
+            {text: "先天下之忧而忧，后天下之乐而乐。", author: "范仲淹《岳阳楼记》"},
+            {text: "落霞与孤鹜齐飞，秋水共长天一色。", author: "王勃《滕王阁序》"},
+            {text: "长风破浪会有时，直挂云帆济沧海。", author: "李白《行路难》"},
+            {text: "采菊东篱下，悠然见南山。", author: "陶渊明《饮酒》"},
+            {text: "大江东去，浪淘尽，千古风流人物。", author: "苏轼《念奴娇·赤壁怀古》"},
+            {text: "人生自古谁无死，留取丹心照汗青。", author: "文天祥《过零丁洋》"},
+            {text: "会当凌绝顶，一览众山小。", author: "杜甫《望岳》"}
+        ];
+
+        // 配置常量
+        const MAX_INPUT_LENGTH = 500; // 最大输入长度限制
+
+        // DOM元素（添加容错）
+        const classicInput = document.getElementById('classic-input') || { value: '' };
+        const outputArea = document.getElementById('output-area') || { innerHTML: '' };
+        const loadingIndicator = document.getElementById('loading-indicator') || { classList: { add: () => {}, remove: () => {} } };
+        const translateBtn = document.getElementById('translate-btn');
+        const punctuateBtn = document.getElementById('punctuate-btn');
+        const functionWordBtn = document.getElementById('function-word-btn');
+        const sentencePatternBtn = document.getElementById('sentence-pattern-btn');
+        const sampleBtn = document.getElementById('sample-btn');
+        const clearBtn = document.getElementById('clear-btn');
+        const copyBtn = document.getElementById('copy-btn');
+        const saveBtn = document.getElementById('save-btn');
+        const listenBtn = document.getElementById('listen-btn');
+        const dailyQuote = document.getElementById('daily-quote') || { textContent: '' };
+        const quoteAuthor = document.getElementById('quote-author') || { textContent: '' };
+        const nextQuoteBtn = document.getElementById('next-quote');
+        const modeButtons = document.querySelectorAll('.mode-btn') || [];
+        const toast = document.getElementById('toast') || { textContent: '', classList: { add: () => {}, remove: () => {} } };
+
+        // 历史记录按钮和分享按钮
+        const historyBtn = document.getElementById('history-btn');
+        const shareBtn = document.getElementById('share-btn');
+
+        // 当前模式：translation, punctuation, combined
+        let currentMode = 'translation';
+        // 历史记录数组（初始化时从本地存储加载）
+        let historyRecords = JSON.parse(localStorage.getItem('historyRecords') || '[]');
+
+        // 初始化
+        document.addEventListener('DOMContentLoaded', function() {
+            // 设置随机名句
+            setRandomQuote();
+
+            // 绑定事件监听器（添加容错）
+            if (translateBtn) translateBtn.addEventListener('click', translateText);
+            if (punctuateBtn) punctuateBtn.addEventListener('click', punctuateText);
+            if (functionWordBtn) functionWordBtn.addEventListener('click', analyzeFunctionWords);
+            if (sentencePatternBtn) sentencePatternBtn.addEventListener('click', analyzeSentencePatterns);
+            if (sampleBtn) sampleBtn.addEventListener('click', loadSampleText);
+            if (clearBtn) clearBtn.addEventListener('click', clearText);
+            if (copyBtn) copyBtn.addEventListener('click', copyResult);
+            if (saveBtn) saveBtn.addEventListener('click', saveToCollection);
+            if (listenBtn) listenBtn.addEventListener('click', listenToText);
+            if (nextQuoteBtn) nextQuoteBtn.addEventListener('click', setRandomQuote);
+            if (historyBtn) historyBtn.addEventListener('click', showHistory);
+            if (shareBtn) shareBtn.addEventListener('click', shareQuote);
+
+            // 模式切换
+            modeButtons.forEach(btn => {
+                btn.addEventListener('click', function() {
+                    modeButtons.forEach(b => b.classList.remove('active'));
+                    this.classList.add('active');
+
+                    if (this.textContent.includes('翻译')) {
+                        currentMode = 'translation';
+                    } else if (this.textContent.includes('断句')) {
+                        currentMode = 'punctuation';
+                    } else {
+                        currentMode = 'combined';
+                    }
+
+                    // 更新按钮状态
+                    updateButtonStates();
+                });
+            });
+
+            // 初始化按钮状态
+            updateButtonStates();
+
+            // 输入长度限制
+            if (classicInput) {
+                classicInput.addEventListener('input', function() {
+                    if (this.value.length > MAX_INPUT_LENGTH) {
+                        this.value = this.value.substring(0, MAX_INPUT_LENGTH);
+                        showToast(`输入文本过长，已截断至${MAX_INPUT_LENGTH}字符`);
+                    }
+                });
+            }
+        });
+
+        // 显示提示消息（支持复制成功时的特殊样式）
+        function showToast(message, isCopySuccess) {
+            if (!toast) return;
+            toast.textContent = message;
+            toast.classList.remove('copy-success');
+            if (isCopySuccess) toast.classList.add('copy-success');
+            toast.classList.add('show');
+            setTimeout(function() {
+                toast.classList.remove('show', 'copy-success');
+            }, 3000);
+        }
+
+        // 翻译文本
+        async function translateText() {
+            const text = classicInput.value.trim();
+            if (!text) {
+                showToast('请输入要翻译的古文内容');
+                return;
+            }
+
+            loadingIndicator.classList.add('active');
+            outputArea.innerHTML = '';
+
+            try {
+                const response = await fetch('/analyze', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        sentence: text
+                    })
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    const result = data.data;
+
+                    let outputHTML = '';
+
+                    if (result.modern_translation) {
+                        outputHTML = `
+                            <div class="analysis-section">
+                                <h4><i class="fas fa-language" style="margin-right: 8px;"></i>现代文翻译</h4>
+                                <p><strong>原文：</strong>${text}</p>
+                                <p><strong>翻译：</strong>${result.modern_translation}</p>
+                            </div>
+                        `;
+                    } else {
+                        outputHTML = '<p>未能获取翻译结果，请重试</p>';
+                    }
+
+                    outputArea.innerHTML = outputHTML;
+                    addToHistory('翻译', text, result.modern_translation || '无翻译结果');
+                    showToast('翻译完成！');
+                } else {
+                    outputArea.innerHTML = `<p>翻译失败: ${data.error || '未知错误'}</p>`;
+                    showToast('翻译失败');
+                }
+            } catch (error) {
+                outputArea.innerHTML = `<p>请求失败: ${error.message}</p>`;
+                showToast('网络请求失败');
+            } finally {
+                loadingIndicator.classList.remove('active');
+            }
+        }
+
+        // 智能断句（修复核心逻辑）
+        async function punctuateText() {
+            const text = classicInput.value.trim();
+            if (!text) {
+                showToast('请输入要断句的古文内容');
+                return;
+            }
+
+            // 检查输入长度
+            if (text.length > MAX_INPUT_LENGTH) {
+                showToast(`输入文本过长，请缩短至${MAX_INPUT_LENGTH}字符以内`);
+                return;
+            }
+
+            // 不再前端去除标点，交由后端判断和处理
+            await performPunctuationAnalysis(text);
+        }
+
+        // 执行断句分析的辅助函数（修复断句结果解析）
+        async function performPunctuationAnalysis(text) {
+            loadingIndicator.classList.add('active');
+            outputArea.innerHTML = '';
+
+            try {
+                const response = await fetch('/analyze', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        sentence: text
+                    })
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    const result = data.data;
+                    let outputHTML = '';
+                    let punctuatedText = '';
+                    let punctuationBasis = '';
+
+                    // 修复：使用新的嵌套结构解析断句结果
+                    if (result.punctuation_result && typeof result.punctuation_result === 'object') {
+                        const punctuationData = result.punctuation_result;
+
+                        // 原文已有标点的情况
+                        if (punctuationData.has_punctuation ||
+                            punctuationData.annotated_sentence.includes('原文已标点') ||
+                            punctuationData.annotated_sentence.includes('无需断句')) {
+
+                            punctuatedText = text;
+                            outputHTML = `
+                                <div class="analysis-section">
+                                    <h4><i class="fas fa-cut" style="margin-right: 8px;"></i>智能断句结果</h4>
+                                    <p><strong>原文：</strong>${text}</p>
+                                    <div style="background-color: #f9f7f2; padding: 20px; border-radius: 8px; border: 2px solid var(--secondary-color); margin: 15px 0; text-align: center;">
+                                        <p style="font-size: 1.3rem; line-height: 2.0; font-weight: bold; color: var(--primary-color); padding: 10px;">
+                                            ${punctuatedText}
+                                        </p>
+                                    </div>
+                                    <div style="background-color: #fff8e1; padding: 10px; border-radius: 6px; margin-top: 10px;">
+                                        <p style="color: var(--accent-color); font-size: 0.9rem;">
+                                            <i class="fas fa-info-circle" style="margin-right: 5px;"></i>
+                                            注：原文已标点，无需断句
+                                        </p>
+                                    </div>
+                                </div>
+                            `;
+                        } else {
+                            // 正常断句结果 - 显示标注后的句子和断句依据
+                            punctuatedText = punctuationData.annotated_sentence || text;
+                            punctuationBasis = punctuationData.punctuation_basis || '';
+
+                            outputHTML = `
+                                <div class="analysis-section">
+                                    <h4><i class="fas fa-cut" style="margin-right: 8px;"></i>智能断句结果</h4>
+                                    <p><strong>原文：</strong>${text}</p>
+                                    <div style="background-color: #f9f7f2; padding: 20px; border-radius: 8px; border: 2px solid var(--secondary-color); margin: 15px 0; text-align: center;">
+                                        <p style="font-size: 1.3rem; line-height: 2.0; font-weight: bold; color: var(--primary-color); padding: 10px;">
+                                            ${punctuatedText}
+                                        </p>
+                                    </div>
+                                    ${punctuationBasis ? `
+                                    <div style="background-color: #e8f5e9; padding: 10px; border-radius: 6px; margin-top: 10px;">
+                                        <p style="color: #2e7d32; font-size: 0.9rem;">
+                                            <i class="fas fa-lightbulb" style="margin-right: 5px;"></i>
+                                            断句依据：${punctuationBasis}
+                                        </p>
+                                    </div>
+                                    ` : ''}
+                                </div>
+                            `;
+                        }
+                    } else {
+                        // 兼容旧格式的兜底处理
+                        punctuatedText = result.punctuation_result || text;
+                        outputHTML = `
+                            <div class="analysis-section">
+                                <h4><i class="fas fa-cut" style="margin-right: 8px;"></i>智能断句结果</h4>
+                                <p><strong>原文：</strong>${text}</p>
+                                <div style="background-color: #fff8e1; padding: 20px; border-radius: 8px; margin: 15px 0; text-align: center;">
+                                    <p style="font-size: 1.3rem; line-height: 2.0; color: var(--accent-color); padding: 10px;">
+                                        ${punctuatedText}
+                                    </p>
+                                    <p style="color: #666; margin-top: 10px;">
+                                        未能获取完整的断句分析结果
+                                    </p>
+                                </div>
+                            </div>
+                        `;
+                    }
+
+                    outputArea.innerHTML = outputHTML;
+                    addToHistory('断句分析', text, `${punctuatedText} ${punctuationBasis ? '- ' + punctuationBasis : ''}`);
+                    showToast('断句分析完成！');
+                } else {
+                    // API失败时的处理
+                    outputArea.innerHTML = `
+                        <div class="analysis-section">
+                            <h4><i class="fas fa-cut" style="margin-right: 8px;"></i>智能断句结果</h4>
+                            <p><strong>原文：</strong>${text}</p>
+                            <div style="background-color: #ffe6e6; padding: 20px; border-radius: 8px; margin: 15px 0; text-align: center;">
+                                <p style="font-size: 1.3rem; line-height: 2.0; color: #c62828; padding: 10px;">
+                                    ${text}
+                                </p>
+                                <p style="color: #c62828; margin-top: 10px;">
+                                    <i class="fas fa-exclamation-triangle" style="margin-right: 5px;"></i>
+                                    断句分析失败: ${data.error || '未知错误'}
+                                </p>
+                            </div>
+                        </div>
+                    `;
+                    showToast('断句分析失败');
+                }
+            } catch (error) {
+                outputArea.innerHTML = `
+                    <div class="analysis-section">
+                        <h4><i class="fas fa-cut" style="margin-right: 8px;"></i>智能断句结果</h4>
+                        <p><strong>原文：</strong>${text}</p>
+                        <div style="background-color: #ffe6e6; padding: 20px; border-radius: 8px; margin: 15px 0; text-align: center;">
+                            <p style="font-size: 1.3rem; line-height: 2.0; color: #c62828; padding: 10px;">
+                                ${text}
+                            </p>
+                            <p style="color: #c62828; margin-top: 10px;">
+                                <i class="fas fa-exclamation-triangle" style="margin-right: 5px;"></i>
+                                请求失败: ${error.message}
+                            </p>
+                        </div>
+                    </div>
+                `;
+                showToast('网络请求失败');
+            } finally {
+                loadingIndicator.classList.remove('active');
+            }
+        }
+
+        // 虚词分析
+        async function analyzeFunctionWords() {
+            const text = classicInput.value.trim();
+            if (!text) {
+                showToast('请输入要分析的古文内容');
+                return;
+            }
+
+            // 检查输入长度
+            if (text.length > MAX_INPUT_LENGTH) {
+                showToast(`输入文本过长，请缩短至${MAX_INPUT_LENGTH}字符以内`);
+                return;
+            }
+
+            loadingIndicator.classList.add('active');
+            outputArea.innerHTML = '';
+
+            try {
+                const response = await fetch('/analyze', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        sentence: text
+                    })
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    const result = data.data;
+
+                    let outputHTML = '';
+
+                    if (result.function_words) {
+                        // 解析虚词分析文本，格式化显示
+                        const functionWordsHtml = formatFunctionWords(result.function_words);
+                        outputHTML = `
+                            <div class="analysis-section">
+                                <h4><i class="fas fa-search-plus" style="margin-right: 8px;"></i>虚词分析</h4>
+                                <p><strong>原文：</strong>${text}</p>
+                                <div class="function-words-analysis">
+                                    ${functionWordsHtml}
+                                </div>
+                            </div>
+                        `;
+                    } else {
+                        outputHTML = `
+                            <div class="analysis-section">
+                                <h4><i class="fas fa-search-plus" style="margin-right: 8px;"></i>虚词分析</h4>
+                                <p><strong>原文：</strong>${text}</p>
+                                <p>未能获取虚词分析结果，可能句子中没有明显的虚词</p>
+                            </div>
+                        `;
+                    }
+
+                    outputArea.innerHTML = outputHTML;
+                    addToHistory('虚词分析', text, result.function_words || '无虚词分析');
+                    showToast('虚词分析完成！');
+                } else {
+                    outputArea.innerHTML = `<p>虚词分析失败: ${data.error || '未知错误'}</p>`;
+                    showToast('虚词分析失败');
+                }
+            } catch (error) {
+                outputArea.innerHTML = `<p>请求失败: ${error.message}</p>`;
+                showToast('网络请求失败');
+            } finally {
+                loadingIndicator.classList.remove('active');
+            }
+        }
+
+        // 句式分析
+        async function analyzeSentencePatterns() {
+            const text = classicInput.value.trim();
+            if (!text) {
+                showToast('请输入要分析的古文内容');
+                return;
+            }
+
+            // 检查输入长度
+            if (text.length > MAX_INPUT_LENGTH) {
+                showToast(`输入文本过长，请缩短至${MAX_INPUT_LENGTH}字符以内`);
+                return;
+            }
+
+            loadingIndicator.classList.add('active');
+            outputArea.innerHTML = '';
+
+            try {
+                const response = await fetch('/analyze', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        sentence: text
+                    })
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    const result = data.data;
+                    const sentencePattern = result.sentence_pattern || {};
+
+                    let outputHTML = '';
+
+                    if (sentencePattern.type) {
+                        outputHTML = `
+                            <div class="analysis-section">
+                                <h4><i class="fas fa-paragraph" style="margin-right: 8px;"></i>句式分析</h4>
+                                <p><strong>原文：</strong>${text}</p>
+
+                                <div class="analysis-subsection">
+                                    <h5><i class="fas fa-shapes" style="margin-right: 5px;"></i>句式类型</h5>
+                                    <p>${sentencePattern.type || '未识别特殊句式'}</p>
+                                </div>
+
+                                <div class="analysis-subsection">
+                                    <h5><i class="fas fa-project-diagram" style="margin-right: 5px;"></i>结构解析</h5>
+                                    <p>${sentencePattern.analysis || '无结构解析'}</p>
+                                </div>
+
+                                <div class="analysis-subsection">
+                                    <h5><i class="fas fa-exchange-alt" style="margin-right: 5px;"></i>现代语序</h5>
+                                    <p>${sentencePattern.modern_order || '无现代语序调整'}</p>
+                                </div>
+                            </div>
+                        `;
+                    } else {
+                        outputHTML = `
+                            <div class="analysis-section">
+                                <h4><i class="fas fa-paragraph" style="margin-right: 8px;"></i>句式分析</h4>
+                                <p><strong>原文：</strong>${text}</p>
+                                <p>未能识别出特殊句式，可能为一般陈述句</p>
+                            </div>
+                        `;
+                    }
+
+                    outputArea.innerHTML = outputHTML;
+
+                    // 记录历史
+                    const patternSummary = `句式类型: ${sentencePattern.type || '无'}, 结构解析: ${sentencePattern.analysis ? sentencePattern.analysis.substring(0, 50) + '...' : '无'}`;
+                    addToHistory('句式分析', text, patternSummary);
+
+                    showToast('句式分析完成！');
+                } else {
+                    outputArea.innerHTML = `<p>句式分析失败: ${data.error || '未知错误'}</p>`;
+                    showToast('句式分析失败');
+                }
+            } catch (error) {
+                outputArea.innerHTML = `<p>请求失败: ${error.message}</p>`;
+                showToast('网络请求失败');
+            } finally {
+                loadingIndicator.classList.remove('active');
+            }
+        }
+
+        // 格式化虚词分析内容
+        function formatFunctionWords(functionWordsText) {
+            if (!functionWordsText) return '<p>无虚词分析内容</p>';
+
+            // 将文本按换行分割
+            const lines = functionWordsText.split('\n').filter(line => line.trim());
+
+            if (lines.length === 0) return '<p>无虚词分析内容</p>';
+
+            let html = '<ul class="analysis-list">';
+
+            lines.forEach(line => {
+                line = line.trim();
+
+                // 检查是否是列表项（以数字开头）
+                if (/^\d+\.\s*/.test(line)) {
+                    // 提取虚词名称（假设格式为 "1. [虚词]：..."）
+                    const match = line.match(/^\d+\.\s*\[([^\]]+)\]/);
+                    if (match) {
+                        const word = match[1];
+                        html += `<li><span class="analysis-term">${word}：</span>${line.replace(/^\d+\.\s*/, '')}</li>`;
+                    } else {
+                        html += `<li>${line}</li>`;
+                    }
+                } else if (line.includes('：') || line.includes(':')) {
+                    // 如果有冒号，分割键值
+                    const parts = line.split(/[：:]/);
+                    if (parts.length >= 2) {
+                        html += `<li><span class="analysis-term">${parts[0]}：</span>${parts.slice(1).join(':')}</li>`;
+                    } else {
+                        html += `<li>${line}</li>`;
+                    }
+                } else {
+                    html += `<li>${line}</li>`;
+                }
+            });
+
+            html += '</ul>';
+            return html;
+        }
+
+        // 加载示例文本
+        function loadSampleText() {
+            // 随机选择一个示例
+            const randomIndex = Math.floor(Math.random() * sampleTexts.length);
+            const sample = sampleTexts[randomIndex];
+
+            if (classicInput) {
+                classicInput.value = sample.content.substring(0, MAX_INPUT_LENGTH);
+            }
+
+            outputArea.innerHTML = `<p>已加载示例：${sample.title}</p><p>点击上方功能按钮体验相应功能。</p>`;
+
+            showToast(`已加载《${sample.title}》示例文本`);
+        }
+
+        // 清空文本
+        function clearText() {
+            if (classicInput) classicInput.value = '';
+
+            outputArea.innerHTML = `<p>在这里将会显示古文的现代文翻译或断句结果。</p><p>点击上方的"翻译为现代文"或"智能断句"按钮开始体验。</p>`;
+            showToast('内容已清空');
+        }
+
+        // 复制结果
+        function copyResult() {
+            const outputText = outputArea.innerText?.trim() || '';
+            if (!outputText || outputText.includes('将会显示')) {
+                showToast('暂无可复制的结果');
+                return;
+            }
+
+            // 使用Clipboard API替代execCommand（更现代的方式）
+            if (navigator.clipboard) {
+                navigator.clipboard.writeText(outputText)
+                    .then(function() {
+                        showToast('结果已复制到剪贴板', true);
+                    })
+                    .catch(function() {
+                        fallbackCopyTextToClipboard(outputText);
+                    });
+            } else {
+                fallbackCopyTextToClipboard(outputText);
+            }
+        }
+
+        // 复制文本的降级方案
+        function fallbackCopyTextToClipboard(text) {
+            const tempTextArea = document.createElement('textarea');
+            tempTextArea.value = text;
+            tempTextArea.style.position = 'fixed';
+            tempTextArea.style.left = '-999999px';
+            document.body.appendChild(tempTextArea);
+            tempTextArea.select();
+            try {
+                document.execCommand('copy');
+                showToast('结果已复制到剪贴板', true);
+            } catch (err) {
+                showToast('复制失败，请手动复制');
+            }
+            document.body.removeChild(tempTextArea);
+        }
+
+        // 保存到收藏
+        function saveToCollection() {
+            const inputText = classicInput.value.trim();
+            const outputText = outputArea.innerText?.trim() || '';
+
+            if (!inputText) {
+                showToast('请先输入或处理古文内容');
+                return;
+            }
+
+            // 模拟保存功能
+            const savedItem = {
+                id: Date.now(),
+                input: inputText,
+                output: outputText || '未处理',
+                type: currentMode,
+                time: new Date().toLocaleString()
+            };
+
+            // 保存到本地存储
+            const savedItems = JSON.parse(localStorage.getItem('savedItems') || '[]');
+            savedItems.unshift(savedItem);
+            // 最多保存50条
+            if (savedItems.length > 50) savedItems.pop();
+            localStorage.setItem('savedItems', JSON.stringify(savedItems));
+
+            showToast('已保存到我的收藏');
+        }
+
+        // 朗诵文本
+        function listenToText() {
+            const text = classicInput.value.trim();
+            if (!text) {
+                showToast('请输入要朗诵的古文内容');
+                return;
+            }
+
+            // 检查浏览器是否支持语音合成
+            if ('speechSynthesis' in window) {
+                const utterance = new SpeechSynthesisUtterance(text);
+                utterance.lang = 'zh-CN';
+                utterance.rate = 0.9; // 语速稍慢，适合朗诵古文
+                utterance.pitch = 1.2; // 音调稍高
+                utterance.volume = 1;
+
+                // 停止之前的朗读
+                window.speechSynthesis.cancel();
+                // 开始朗读
+                window.speechSynthesis.speak(utterance);
+
+                showToast('开始朗诵...');
+
+                // 朗读结束提示
+                utterance.onend = () => {
+                    showToast('朗诵完成');
+                };
+
+                // 朗读错误处理
+                utterance.onerror = (e) => {
+                    showToast(`朗读出错: ${e.error}`);
+                };
+            } else {
+                showToast('您的浏览器不支持语音朗读功能');
+            }
+        }
+
+        // 设置随机名句（带过渡动画）
+        function setRandomQuote() {
+            if (!dailyQuote || !quoteAuthor) return;
+            dailyQuote.classList.add('quote-transition');
+            setTimeout(function() {
+                var randomIndex = Math.floor(Math.random() * dailyQuotes.length);
+                var quote = dailyQuotes[randomIndex];
+                dailyQuote.textContent = '"' + quote.text + '"';
+                quoteAuthor.textContent = '—— ' + quote.author;
+                dailyQuote.classList.remove('quote-transition');
+            }, 300);
+        }
+
+        // 更新按钮状态
+        function updateButtonStates() {
+            if (!translateBtn || !punctuateBtn) return;
+
+            // 根据当前模式更新按钮样式
+            if (currentMode === 'translation') {
+                translateBtn.classList.add('primary');
+                punctuateBtn.classList.remove('primary');
+            } else if (currentMode === 'punctuation') {
+                punctuateBtn.classList.add('primary');
+                translateBtn.classList.remove('primary');
+            } else {
+                translateBtn.classList.remove('primary');
+                punctuateBtn.classList.remove('primary');
+            }
+        }
+
+        // 添加到历史记录（修复存储逻辑）
+        function addToHistory(type, input, output) {
+            const record = {
+                id: Date.now(),
+                type: type,
+                input: input.substring(0, 50) + (input.length > 50 ? '...' : ''),
+                output: output.replace(/<[^>]*>/g, '').substring(0, 100) + (output.length > 100 ? '...' : ''),
+                time: new Date().toLocaleString()
+            };
+
+            historyRecords.unshift(record);
+            // 最多保存20条记录
+            if (historyRecords.length > 20) {
+                historyRecords.pop();
+            }
+
+            // 同步保存到本地存储
+            localStorage.setItem('historyRecords', JSON.stringify(historyRecords));
+        }
+
+        // 显示历史记录
+        function showHistory() {
+            // 确保从本地存储同步最新数据
+            historyRecords = JSON.parse(localStorage.getItem('historyRecords') || '[]');
+
+            if (historyRecords.length === 0) {
+                outputArea.innerHTML = `
+                    <div class="analysis-section">
+                        <h4>历史记录</h4>
+                        <p>暂无历史记录</p>
+                    </div>
+                `;
+                return;
+            }
+
+            let historyHtml = `
+                <div class="analysis-section">
+                    <h4>历史记录 (共${historyRecords.length}条)</h4>
+                    <ul class="analysis-list" style="max-height: 300px; overflow-y: auto;">
+            `;
+
+            historyRecords.forEach((record, index) => {
+                historyHtml += `
+                    <li style="border-bottom: 1px dashed #eee; padding-bottom: 10px; margin-bottom: 10px;">
+                        <span class="analysis-term">${index + 1}. ${record.type} [${record.time}]</span><br>
+                        <strong>输入：</strong>${record.input}<br>
+                        <strong>输出：</strong>${record.output}
+                    </li>
+                `;
+            });
+
+            historyHtml += `
+                    </ul>
+                </div>
+            `;
+
+            outputArea.innerHTML = historyHtml;
+            showToast('已加载历史记录');
+        }
+
+        // 分享名句
+        function shareQuote() {
+            const quoteText = dailyQuote?.textContent || '';
+            const quoteAuthorText = quoteAuthor?.textContent || '';
+
+            if (!quoteText) {
+                showToast('暂无可分享的名句');
+                return;
+            }
+
+            if (navigator.share) {
+                // 支持Web Share API
+                navigator.share({
+                    title: '文言文智能助手 - 每日名句',
+                    text: `${quoteText} ${quoteAuthorText}`,
+                    url: window.location.href
+                }).then(() => {
+                    showToast('分享成功');
+                }).catch((error) => {
+                    showToast('分享取消或失败');
+                });
+            } else {
+                // 复制到剪贴板作为备用方案
+                const shareText = `${quoteText} ${quoteAuthorText} —— 来自文言文智能助手`;
+
+                if (navigator.clipboard) {
+                    navigator.clipboard.writeText(shareText)
+                        .then(() => {
+                            showToast('名句已复制到剪贴板，您可以手动分享');
+                        })
+                        .catch(() => {
+                            fallbackCopyTextToClipboard(shareText);
+                        });
+                } else {
+                    fallbackCopyTextToClipboard(shareText);
+                }
+            }
+        }
+
+        // 资源库侧边筛选区块已移除，独立为 /resource-library 页面
+    </script>
+</body>
+</html>

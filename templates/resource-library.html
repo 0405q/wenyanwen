@@ -1,0 +1,817 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>资源库 - 文言文智能助手</title>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&family=Noto+Serif+SC:wght@400;700&display=swap">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    :root{
+      --primary-color: #8b4513;
+      --secondary-color: #d4a76a;
+      --accent-color: #a0522d;
+      --paper-bg: #FAF6F0;
+      --paper-bg-2: #F5F0E8;
+      --ink-black: #2c2419;
+      --cinnabar: #c45c3e;
+      --dark-text: #3e2723;
+      --light-text: #5d4037;
+      --border-color: #d7ccc8;
+      --shadow: 0 4px 12px rgba(139, 69, 19, 0.10);
+      --transition: all 0.3s ease;
+    }
+
+    body{
+      font-family: 'Noto Serif SC', serif;
+      background: linear-gradient(180deg, var(--paper-bg) 0%, var(--paper-bg-2) 100%);
+      color: var(--dark-text);
+      line-height: 1.6;
+      min-height: 100vh;
+      position: relative;
+      background-image:
+        url("data:image/svg+xml,%3Csvg width='140' height='140' viewBox='0 0 140 140' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='140' height='140' filter='url(%23n)' opacity='0.035'/%3E%3C/svg%3E"),
+        url("data:image/svg+xml,%3Csvg width='120' height='120' viewBox='0 0 120 120' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M10 70c18-26 40-35 65-30 12 3 22 10 35 8 6-1 9-3 15-8v15c-7 5-12 7-18 8-14 2-24-6-37-10-23-7-42 1-60 25z' fill='%238b4513' fill-opacity='0.04'/%3E%3C/svg%3E");
+    }
+
+    /* 粒子背景 Canvas（与首页一致风格，轻量化） */
+    #particle-canvas{
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      z-index: -1;
+      pointer-events: none;
+    }
+
+    .container{
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 0 20px;
+      position: relative;
+      z-index: 1;
+    }
+
+    /* 顶部导航（复刻首页交互与配色） */
+    header{
+      background: linear-gradient(135deg, var(--primary-color) 0%, var(--accent-color) 50%, #cd853f 100%);
+      background-size: 200% 200%;
+      animation: headerShimmer 8s ease-in-out infinite;
+      color: #fff;
+      padding: 1.5rem 0;
+      box-shadow: var(--shadow);
+      position: relative;
+      overflow: hidden;
+    }
+    header::before{
+      content: "";
+      position: absolute; inset: 0;
+      opacity: 0.28;
+      background-image: url("data:image/svg+xml,%3Csvg width='100' height='100' viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M11 18c3.866 0 7-3.134 7-7s-3.134-7-7-7-7 3.134-7 7 3.134 7 7 7zm48 25c3.866 0 7-3.134 7-7s-3.134-7-7-7-7 3.134-7 7 3.134 7 7 7zM12 86c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4z' fill='%23ffffff' fill-opacity='0.05' fill-rule='evenodd'/%3E%3C/svg%3E");
+    }
+    @keyframes headerShimmer { 0%,100%{background-position:0% 50%} 50%{background-position:100% 50%} }
+
+    .header-content{
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      position: relative;
+      z-index: 2;
+    }
+    .logo{ display:flex; align-items:center; gap:15px; animation: logoFloat 4s ease-in-out infinite; }
+    @keyframes logoFloat { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-3px)} }
+    .logo-icon{ font-size:2.5rem; color: var(--secondary-color); }
+    .logo-text h1{ font-family:'Ma Shan Zheng', cursive; font-size:2.2rem; font-weight:normal; letter-spacing:2px; }
+    .logo-text p{ font-size:0.9rem; opacity:0.9; }
+
+    nav ul{ display:flex; list-style:none; gap:30px; }
+    nav a{
+      color:#fff; text-decoration:none;
+      font-size:1.1rem;
+      padding:8px 12px;
+      border-radius:4px;
+      transition: var(--transition);
+      position: relative;
+    }
+    nav a:hover, nav a.active{ background-color: rgba(255,255,255,0.15); }
+    nav a::after{
+      content:'';
+      position:absolute;
+      bottom:-5px; left:50%;
+      transform: translateX(-50%);
+      width:0; height:2px;
+      background: linear-gradient(90deg, transparent, var(--secondary-color), transparent);
+      transition: var(--transition);
+    }
+    nav a:hover::after, nav a.active::after{ width:100%; }
+
+    /* 页面主体 */
+    .page{
+      margin: 28px auto 40px;
+      display: grid;
+      gap: 22px;
+    }
+
+    .hero{
+      background: linear-gradient(180deg, #fffefc 0%, #fdf9f2 100%);
+      border-radius: 14px;
+      box-shadow: var(--shadow);
+      border: 1px solid rgba(215,204,200,0.9);
+      padding: 22px 24px;
+      position: relative;
+      overflow: hidden;
+    }
+    .hero::before{
+      content:'';
+      position:absolute; inset:0;
+      opacity:0.05;
+      background-image: radial-gradient(circle at 20% 30%, rgba(196,92,62,0.25), transparent 55%),
+                        radial-gradient(circle at 80% 20%, rgba(212,167,106,0.35), transparent 55%);
+      pointer-events:none;
+    }
+    .hero h2{
+      position: relative;
+      z-index: 1;
+      font-size: 1.8rem;
+      color: var(--ink-black);
+      letter-spacing: 0.5px;
+    }
+    .hero p{
+      position: relative;
+      z-index: 1;
+      margin-top: 8px;
+      color: var(--light-text);
+      font-style: italic;
+      opacity: 0.95;
+    }
+    .divider{
+      position: relative;
+      z-index: 1;
+      margin-top: 14px;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, rgba(215,204,200,1), transparent);
+    }
+
+    .panel{
+      background: linear-gradient(180deg, #fffefc 0%, #fdf9f2 100%);
+      border-radius: 14px;
+      box-shadow: var(--shadow);
+      border: 1px solid rgba(215,204,200,0.9);
+      padding: 20px 20px 18px;
+    }
+
+    .filters{
+      display: grid;
+      grid-template-columns: 1.1fr 1fr 1.2fr;
+      gap: 14px;
+      align-items: end;
+    }
+
+    .field label{
+      display:block;
+      font-size: 0.95rem;
+      color: var(--light-text);
+      margin-bottom: 8px;
+    }
+
+    .tag-row{
+      display:flex;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+    .tag{
+      padding: 8px 12px;
+      border-radius: 999px;
+      border: 1px solid rgba(215,204,200,0.95);
+      background: rgba(255,255,255,0.7);
+      color: var(--dark-text);
+      cursor: pointer;
+      transition: var(--transition);
+      user-select: none;
+      font-size: 0.98rem;
+    }
+    .tag:hover{
+      border-color: rgba(196,92,62,0.75);
+      box-shadow: 0 8px 22px rgba(139,69,19,0.10);
+      transform: translateY(-1px);
+    }
+    .tag.active{
+      border-color: var(--cinnabar);
+      background: rgba(196,92,62,0.10);
+      color: var(--ink-black);
+      font-weight: 700;
+    }
+
+    .select, .search{
+      width: 100%;
+      padding: 11px 12px;
+      border-radius: 10px;
+      border: 1px solid rgba(215,204,200,0.95);
+      font-family: inherit;
+      background: #fffefc;
+      transition: var(--transition);
+      outline: none;
+    }
+    .select:focus, .search:focus{
+      border-color: rgba(196,92,62,0.75);
+      box-shadow: 0 0 0 3px rgba(196,92,62,0.18), 0 0 18px rgba(139,69,19,0.12);
+    }
+
+    .search-wrap{
+      position: relative;
+    }
+    .search-icon{
+      position:absolute;
+      right: 12px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: rgba(93,64,55,0.75);
+      pointer-events:none;
+    }
+    .search{
+      padding-right: 38px;
+    }
+
+    .actions-row{
+      margin-top: 14px;
+      display:flex;
+      justify-content: space-between;
+      gap: 12px;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+
+    .btn{
+      border: none;
+      cursor: pointer;
+      border-radius: 10px;
+      padding: 10px 14px;
+      font-family: inherit;
+      transition: var(--transition);
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      box-shadow: 0 6px 16px rgba(139,69,19,0.12);
+    }
+    .btn.primary{
+      background: linear-gradient(135deg, var(--ink-black) 0%, #3d3428 60%, #4a3d2e 100%);
+      color: #fff;
+    }
+    .btn.primary:hover{
+      transform: translateY(-1px);
+      box-shadow: 0 10px 22px rgba(139,69,19,0.18);
+    }
+    .btn.cinnabar{
+      background: linear-gradient(135deg, var(--cinnabar), #b44e33);
+      color: #fff;
+    }
+    .btn.cinnabar:hover{
+      filter: brightness(0.98);
+      transform: translateY(-1px);
+    }
+
+    .meta{
+      color: var(--light-text);
+      font-size: 0.95rem;
+    }
+
+    .results{
+      margin-top: 14px;
+      border-radius: 14px;
+      border: 1px solid rgba(215,204,200,0.95);
+      background: #fffefc;
+      overflow: hidden;
+    }
+    .result-list{
+      max-height: 420px;
+      overflow: auto;
+      padding: 14px;
+    }
+    .item{
+      padding: 12px 12px;
+      border-radius: 12px;
+      border: 1px solid rgba(215,204,200,0.85);
+      background: linear-gradient(180deg, #fffefc 0%, #fdf9f2 100%);
+      margin-bottom: 12px;
+    }
+    .item-title{
+      font-weight: 700;
+      color: var(--primary-color);
+      font-size: 1.05rem;
+    }
+    .item-meta{
+      margin-top: 4px;
+      color: var(--light-text);
+      font-size: 0.92rem;
+    }
+    .item-highlight{
+      margin-top: 8px;
+      color: var(--cinnabar);
+      line-height: 1.75;
+    }
+    .item-excerpt{
+      margin-top: 8px;
+      color: var(--dark-text);
+      line-height: 1.75;
+    }
+    .item-source{
+      margin-top: 8px;
+      color: rgba(93,64,55,0.85);
+      font-size: 0.92rem;
+    }
+    .item-actions{
+      margin-top: 10px;
+      display: flex;
+      justify-content: flex-end;
+    }
+    .btn-small{
+      padding: 6px 10px;
+      border-radius: 8px;
+      border: 1px solid rgba(139,69,19,0.25);
+      background: #fff;
+      color: var(--primary-color);
+      cursor: pointer;
+      font-family: inherit;
+      font-size: 0.9rem;
+      transition: var(--transition);
+    }
+    .btn-small:hover{
+      background: rgba(196,92,62,0.08);
+      border-color: rgba(196,92,62,0.5);
+    }
+
+    .empty{
+      display: grid;
+      place-items: center;
+      padding: 58px 16px;
+      text-align: center;
+      color: rgba(93,64,55,0.85);
+    }
+    .empty i{
+      font-size: 2.2rem;
+      color: rgba(139,69,19,0.45);
+      margin-bottom: 10px;
+    }
+    .empty p{
+      font-size: 1.02rem;
+      color: rgba(93,64,55,0.75);
+    }
+    .detail-modal{
+      position: fixed;
+      inset: 0;
+      background: rgba(44, 36, 25, 0.45);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+      padding: 20px;
+    }
+    .detail-modal.show{
+      display: flex;
+    }
+    .detail-card{
+      width: min(900px, 100%);
+      max-height: 85vh;
+      overflow: auto;
+      border-radius: 14px;
+      background: linear-gradient(180deg, #fffefc 0%, #fdf9f2 100%);
+      border: 1px solid rgba(215,204,200,0.95);
+      box-shadow: 0 14px 38px rgba(44,36,25,0.25);
+      padding: 16px 18px;
+    }
+    .detail-header{
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 10px;
+      border-bottom: 1px solid rgba(215,204,200,0.9);
+      padding-bottom: 8px;
+    }
+    .detail-title{
+      font-weight: 700;
+      color: var(--primary-color);
+      font-size: 1.2rem;
+    }
+    .detail-body{
+      color: var(--dark-text);
+      line-height: 1.9;
+      white-space: pre-wrap;
+      font-size: 1rem;
+    }
+
+    /* 响应式（平板以上） */
+    @media (max-width: 1024px){
+      .filters{
+        grid-template-columns: 1fr 1fr;
+      }
+    }
+    @media (max-width: 820px){
+      .filters{
+        grid-template-columns: 1fr;
+      }
+    }
+
+    footer{
+      margin-top: 34px;
+      padding: 26px 0 18px;
+      color: rgba(93,64,55,0.78);
+      text-align: center;
+      font-size: 0.92rem;
+    }
+  </style>
+</head>
+<body>
+  <canvas id="particle-canvas" aria-hidden="true"></canvas>
+
+  <header>
+    <div class="container">
+      <div class="header-content">
+        <div class="logo">
+          <div class="logo-icon"><i class="fas fa-scroll"></i></div>
+          <div class="logo-text">
+            <h1>文言文智能助手</h1>
+            <p>传承经典 · 智解古文</p>
+          </div>
+        </div>
+        <nav>
+          <ul>
+            <li><a href="/">首页</a></li>
+            <li><a href="/resource-library" class="active">资源库</a></li>
+          </ul>
+        </nav>
+      </div>
+    </div>
+  </header>
+
+  <div class="container">
+    <div class="page">
+      <section class="hero">
+        <h2>资源库</h2>
+        <p>以“分类—维度—条目”方式整理古籍资源，支持筛选与检索，便于教学、背诵与赏读。</p>
+        <div class="divider"></div>
+      </section>
+
+      <section class="panel">
+        <div class="filters">
+          <!-- 分类选择（标签形式） -->
+          <div class="field">
+            <label><i class="fas fa-tags" style="margin-right:8px;color:rgba(139,69,19,0.75)"></i>分类选择</label>
+            <div class="tag-row" id="category-tags">
+              <!-- 预置一个标签，加载接口后会自动替换/补齐 -->
+              <div class="tag active" data-slug="tang_poems">唐诗三百首</div>
+            </div>
+          </div>
+
+          <!-- 筛选维度 -->
+          <div class="field">
+            <label><i class="fas fa-filter" style="margin-right:8px;color:rgba(139,69,19,0.75)"></i>筛选维度</label>
+            <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px;">
+              <select class="select" id="facet-type">
+                <option value="">不筛选</option>
+                <option value="author">作者</option>
+              </select>
+              <select class="select" id="facet-value">
+                <option value="">全部</option>
+                <option value="岑参">岑参</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- 关键词检索 -->
+          <div class="field">
+            <label><i class="fas fa-magnifying-glass" style="margin-right:8px;color:rgba(139,69,19,0.75)"></i>关键词检索</label>
+            <div class="search-wrap">
+              <input class="search" id="search-input" placeholder="标题/作者/名句/段落/出处" />
+              <i class="fas fa-search search-icon" aria-hidden="true"></i>
+            </div>
+          </div>
+        </div>
+
+        <div class="actions-row">
+          <button class="btn cinnabar" id="refresh-btn">
+            <i class="fas fa-rotate"></i> 加载/刷新资源库
+          </button>
+          <div class="meta" id="meta-text">共 0 条</div>
+        </div>
+
+        <div class="results" style="margin-top: 14px;">
+          <div class="result-list" id="result-list">
+            <div class="empty" id="empty-state">
+              <div>
+                <i class="fas fa-book-open"></i>
+                <p>暂无匹配条目（可换筛选维度或关键字）</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <div class="detail-modal" id="detail-modal" aria-hidden="true">
+        <div class="detail-card" role="dialog" aria-modal="true" aria-label="诗文全文">
+          <div class="detail-header">
+            <div class="detail-title" id="detail-title">诗文详情</div>
+            <button class="btn-small" id="detail-close">关闭</button>
+          </div>
+          <div class="item-meta" id="detail-meta"></div>
+          <div class="item-highlight" id="detail-highlight" style="margin-top:8px;"></div>
+          <div class="detail-body" id="detail-body" style="margin-top:10px;"></div>
+          <div class="item-source" id="detail-source" style="margin-top:10px;"></div>
+        </div>
+      </div>
+
+      <footer>
+        <div>© 2026 文言文智能助手 · 资源库</div>
+      </footer>
+    </div>
+  </div>
+
+  <script>
+    /* ===== 轻量粒子背景：与首页同风格 ===== */
+    (function () {
+      'use strict';
+      var canvas = document.getElementById('particle-canvas');
+      if (!canvas) return;
+      var ctx = canvas.getContext('2d');
+      var particles = [];
+      var isTabletOrDesktop = window.innerWidth >= 768;
+      var particleCount = isTabletOrDesktop ? 45 : 22;
+
+      function resize() {
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+        if (particles.length === 0) {
+          for (var i = 0; i < particleCount; i++) {
+            particles.push({
+              x: Math.random() * canvas.width,
+              y: Math.random() * canvas.height,
+              vx: (Math.random() - 0.5) * 0.25,
+              vy: (Math.random() - 0.5) * 0.25 - 0.08,
+              r: Math.random() * 2 + 0.6,
+              a: Math.random() * 0.22 + 0.08
+            });
+          }
+        }
+      }
+
+      function loop() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        for (var i = 0; i < particles.length; i++) {
+          var p = particles[i];
+          p.x += p.vx;
+          p.y += p.vy;
+          p.vx *= 0.995;
+          p.vy *= 0.995;
+          if (p.x < 0 || p.x > canvas.width) p.vx *= -1;
+          if (p.y < 0 || p.y > canvas.height) { p.y = canvas.height; p.vy = -Math.random() * 0.25; }
+          ctx.beginPath();
+          ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+          ctx.fillStyle = 'rgba(212, 167, 106, ' + p.a + ')';
+          ctx.fill();
+        }
+        requestAnimationFrame(loop);
+      }
+
+      resize();
+      window.addEventListener('resize', resize);
+      loop();
+    })();
+
+    /* ===== 资源库：筛选/检索/结果渲染（对接后端 /api/library/*） ===== */
+    (function () {
+      var state = {
+        categorySlug: 'tang_poems',
+        facets: {},
+        facetType: '',
+        facetValue: '',
+        q: ''
+      };
+
+      var categoryTagsEl = document.getElementById('category-tags');
+      var facetTypeEl = document.getElementById('facet-type');
+      var facetValueEl = document.getElementById('facet-value');
+      var searchEl = document.getElementById('search-input');
+      var refreshBtn = document.getElementById('refresh-btn');
+      var metaEl = document.getElementById('meta-text');
+      var listEl = document.getElementById('result-list');
+      var detailModal = document.getElementById('detail-modal');
+      var detailTitle = document.getElementById('detail-title');
+      var detailMeta = document.getElementById('detail-meta');
+      var detailHighlight = document.getElementById('detail-highlight');
+      var detailBody = document.getElementById('detail-body');
+      var detailSource = document.getElementById('detail-source');
+      var detailClose = document.getElementById('detail-close');
+
+      function humanFacetType(t) {
+        var map = { author: '作者', theme: '题材', style: '流派', dynasty: '朝代', genre: '文体', book: '典籍' };
+        return map[t] || t;
+      }
+
+      async function fetchJSON(url) {
+        var res = await fetch(url, { headers: { 'Accept': 'application/json' } });
+        var data = await res.json();
+        if (!data || data.success !== true) throw new Error((data && data.error) || '请求失败');
+        return data.data;
+      }
+
+      function setMeta(count) {
+        var parts = [];
+        if (state.facetType && state.facetValue) parts.push(humanFacetType(state.facetType) + '：' + state.facetValue);
+        if (state.q) parts.push('关键词：' + state.q);
+        metaEl.textContent = '共 ' + count + ' 条' + (parts.length ? '（' + parts.join('，') + '）' : '');
+      }
+
+      function renderEmpty() {
+        listEl.innerHTML =
+          '<div class="empty"><div><i class="fas fa-book-open"></i><p>暂无匹配条目（可换筛选维度或关键字）</p></div></div>';
+      }
+
+      function escapeHtml(s) {
+        return String(s || '')
+          .replaceAll('&', '&amp;')
+          .replaceAll('<', '&lt;')
+          .replaceAll('>', '&gt;')
+          .replaceAll('"', '&quot;')
+          .replaceAll("'", '&#39;');
+      }
+
+      function renderItems(items) {
+        if (!items || items.length === 0) {
+          setMeta(0);
+          renderEmpty();
+          return;
+        }
+
+        setMeta(items.length);
+        listEl.innerHTML = '';
+        for (var i = 0; i < items.length; i++) {
+          var it = items[i];
+          var titleLine = escapeHtml(it.title) + (it.author ? ' · ' + escapeHtml(it.author) : '');
+          var metaParts = [];
+          if (it.dynasty) metaParts.push(escapeHtml(it.dynasty));
+          if (it.sub_type) metaParts.push(escapeHtml(it.sub_type));
+          if (it.sub_group && it.sub_group !== it.author) metaParts.push(escapeHtml(it.sub_group));
+          var metaText = metaParts.length ? metaParts.join(' / ') : '';
+
+          var html = '<div class="item">' +
+              '<div class="item-title">' + titleLine + '</div>' +
+              (metaText ? '<div class="item-meta">' + metaText + '</div>' : '') +
+              (it.highlight ? '<div class="item-highlight">“' + escapeHtml(it.highlight) + '”</div>' : '') +
+              (it.excerpt ? '<div class="item-excerpt">' + escapeHtml(it.excerpt) + '</div>' : '') +
+              (it.source ? '<div class="item-source">出处：' + escapeHtml(it.source) + '</div>' : '') +
+              '<div class="item-actions"><button class="btn-small js-view-full" data-id="' + it.id + '">查看全文</button></div>' +
+            '</div>';
+          listEl.insertAdjacentHTML('beforeend', html);
+        }
+      }
+
+      async function openDetail(itemId) {
+        var item = await fetchJSON('/api/library/item/' + encodeURIComponent(itemId));
+        var titleLine = (item.title || '') + (item.author ? ' · ' + item.author : '');
+        var metaParts = [];
+        if (item.dynasty) metaParts.push(item.dynasty);
+        if (item.sub_type) metaParts.push(item.sub_type);
+        if (item.sub_group && item.sub_group !== item.author) metaParts.push(item.sub_group);
+
+        detailTitle.textContent = titleLine || '诗文详情';
+        detailMeta.textContent = metaParts.join(' / ');
+        detailHighlight.textContent = item.highlight ? ('“' + item.highlight + '”') : '';
+        detailBody.textContent = item.full_text || item.excerpt || '暂无全文内容。';
+        detailSource.textContent = item.source ? ('出处：' + item.source) : '';
+        detailModal.classList.add('show');
+        detailModal.setAttribute('aria-hidden', 'false');
+      }
+
+      function closeDetail() {
+        detailModal.classList.remove('show');
+        detailModal.setAttribute('aria-hidden', 'true');
+      }
+
+      function activateCategory(slug) {
+        state.categorySlug = slug;
+        var tags = categoryTagsEl.querySelectorAll('.tag');
+        tags.forEach(function (t) {
+          t.classList.toggle('active', t.getAttribute('data-slug') === slug);
+        });
+      }
+
+      async function loadCategories() {
+        var cats = await fetchJSON('/api/library/categories');
+        if (!cats || cats.length === 0) return;
+
+        categoryTagsEl.innerHTML = '';
+        cats.forEach(function (c) {
+          var div = document.createElement('div');
+          div.className = 'tag' + (c.slug === state.categorySlug ? ' active' : '');
+          div.textContent = c.name;
+          div.setAttribute('data-slug', c.slug);
+          div.addEventListener('click', async function () {
+            activateCategory(c.slug);
+            state.facetType = '';
+            state.facetValue = '';
+            facetTypeEl.value = '';
+            await loadFacets();
+            await loadItems();
+          });
+          categoryTagsEl.appendChild(div);
+        });
+
+        // 若默认 slug 不存在，落到第一个
+        var exists = cats.some(function (c) { return c.slug === state.categorySlug; });
+        if (!exists) {
+          state.categorySlug = cats[0].slug;
+          activateCategory(state.categorySlug);
+        }
+      }
+
+      async function loadFacets() {
+        var facets = await fetchJSON('/api/library/' + encodeURIComponent(state.categorySlug) + '/facets');
+        state.facets = facets || {};
+
+        // facet type options
+        facetTypeEl.innerHTML = '';
+        facetTypeEl.appendChild(new Option('不筛选', ''));
+        Object.keys(state.facets).forEach(function (t) {
+          facetTypeEl.appendChild(new Option(humanFacetType(t), t));
+        });
+
+        facetValueEl.innerHTML = '';
+        facetValueEl.appendChild(new Option('全部', ''));
+      }
+
+      function syncFacetValues() {
+        var t = facetTypeEl.value;
+        state.facetType = t;
+        state.facetValue = '';
+        facetValueEl.innerHTML = '';
+        facetValueEl.appendChild(new Option('全部', ''));
+        if (!t) return;
+        (state.facets[t] || []).forEach(function (name) {
+          facetValueEl.appendChild(new Option(name, name));
+        });
+      }
+
+      async function loadItems() {
+        var url = '/api/library/' + encodeURIComponent(state.categorySlug) + '/items?limit=200';
+        if (state.facetType && state.facetValue) {
+          url += '&tag_type=' + encodeURIComponent(state.facetType) + '&tag_name=' + encodeURIComponent(state.facetValue);
+        }
+        if (state.q) url += '&q=' + encodeURIComponent(state.q);
+        var items = await fetchJSON(url);
+        renderItems(items);
+      }
+
+      // 事件
+      facetTypeEl.addEventListener('change', function () {
+        syncFacetValues();
+        loadItems().catch(function () {});
+      });
+      facetValueEl.addEventListener('change', function () {
+        state.facetValue = facetValueEl.value;
+        loadItems().catch(function () {});
+      });
+      refreshBtn.addEventListener('click', function () {
+        loadItems().catch(function () {});
+      });
+      listEl.addEventListener('click', function (e) {
+        var target = e.target;
+        if (!target || !target.classList.contains('js-view-full')) return;
+        var id = target.getAttribute('data-id');
+        if (!id) return;
+        openDetail(id).catch(function () {});
+      });
+      detailClose.addEventListener('click', closeDetail);
+      detailModal.addEventListener('click', function (e) {
+        if (e.target === detailModal) closeDetail();
+      });
+      document.addEventListener('keydown', function (e) {
+        if (e.key === 'Escape' && detailModal.classList.contains('show')) closeDetail();
+      });
+      var tmr = null;
+      searchEl.addEventListener('input', function () {
+        if (tmr) clearTimeout(tmr);
+        tmr = setTimeout(function () {
+          state.q = (searchEl.value || '').trim();
+          loadItems().catch(function () {});
+        }, 350);
+      });
+
+      // 启动（按需求：可预置测试文字或为空，这里默认空）
+      (async function bootstrap() {
+        try {
+          await loadCategories();
+          await loadFacets();
+          syncFacetValues();
+          await loadItems();
+        } catch (e) {
+          setMeta(0);
+          renderEmpty();
+          metaEl.textContent = '共 0 条（资源库加载失败：' + (e && e.message ? e.message : '未知错误') + '）';
+        }
+      })();
+    })();
+  </script>
+</body>
+</html>
+
