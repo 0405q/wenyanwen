@@ -29,7 +29,7 @@ class ClassicalChineseAnalyzer:
     文言文语法分析器 - 安全版本
     """
 
-    def __init__(self, model: str = 'qwen-max'):
+    def __init__(self, model: str = 'qwen-plus'):
         """
         初始化分析器 - 从环境变量获取API Key
         """
