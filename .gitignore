@@ -1,0 +1,36 @@
+# 环境变量（包含 API Key，绝对不能上传！）
+.env
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+*.egg-info/
+dist/
+build/
+
+# 虚拟环境
+venv/
+ENV/
+env/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# 数据库文件（可选，看你是否想保留数据）
+# resource_library.sqlite3
+
+# 日志
+*.log
+
+# 系统文件
+.DS_Store
+Thumbs.db
+
+# 备份文件
+*_backup.*
