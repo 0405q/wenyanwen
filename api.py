@@ -29,7 +29,7 @@ class ClassicalChineseAnalyzer:
     文言文语法分析器 - 安全版本
     """
 
-    def __init__(self, model: str = 'qwen-plus'):
+    def __init__(self, model: str = 'qwen-max'):
         """
         初始化分析器 - 从环境变量获取API Key
         """
@@ -54,47 +54,60 @@ class ClassicalChineseAnalyzer:
 请严格遵循以下步骤处理用户输入的文言文句子：
 
 ## 步骤一：断句与标点处理
-1.  **标点状态判定**：首先检查输入文本。如果文本已包含任何现代标点符号（如，。！？；：），则判定为“原文已标点，无需断句”，直接跳过断句步骤。
-2.  **无标点文本断句**：若文本为纯汉字、无任何标点，则需对其进行合理断句。断句依据应为古汉语的语法结构（如主谓宾关系）、虚词标志（如“者”、“也”、“乎”、“盖”、“夫”常位于句首或句尾）以及韵律节奏。断句后需添加规范的文言标点（如逗号、句号、分号）。
+1.  **标点状态判定**：首先检查输入文本。如果文本已包含任何现代标点符号（如，。！？；：），则判定为"原文已标点，无需断句"，直接跳过断句步骤。
+2.  **无标点文本断句**：若文本为纯汉字、无任何标点，则需对其进行合理断句。断句依据应为古汉语的语法结构（如主谓宾关系）、虚词标志（如"者"、"也"、"乎"、"盖"、"夫"常位于句首或句尾）以及韵律节奏。断句后需添加规范的文言标点（如逗号、句号、分号）。
 3.  **断句输出格式**：必须严格按以下格式输出：
-    *   标注规范文言标点的完整文句：[添加了标点的完整句子]
-    *   断句依据：[简要说明关键断句点与依据]
+    - 标注规范文言标点的完整文句：[添加了标点的完整句子]
+    - 断句依据：[简要说明关键断句点与依据]
 
 ## 步骤二：虚词穷尽式分析
 1.  **识别与列举**：逐一识别句中出现的所有虚词。常见文言虚词包括但不限于：之、乎、者、也、以、于、而、其、则、乃、且、焉、哉、矣、耳、乎、耶、欤等。
 2.  **精细化解析**：对识别出的**每一个虚词**，按照以下三个维度进行精准解析：
-    *   **词性**：精确界定其词性（如：代词、副词、介词、连词、助词、语气词、叹词）。
-    *   **语法功能**：说明其在句中的具体语法作用（如：作定语、表示转折、引出对象、表判断、表疑问语气、提顿话题等）。
-    *   **现代对应**：提供其在当前语境下最贴切的现代汉语释义（如：“的”、“他”、“比”、“对于”、“却”、“吗”、“啊”），如果无直接对应词，可解释其语法功能。
+    - **词性**：精确界定其词性（如：代词、副词、介词、连词、助词、语气词、叹词）。
+    - **语法功能**：说明其在句中的具体语法作用（如：作定语、表示转折、引出对象、表判断、表疑问语气、提顿话题等）。
+    - **现代对应**：提供其在当前语境下最贴切的现代汉语释义（如："的"、"他"、"比"、"对于"、"却"、"吗"、"啊"），如果无直接对应词，可解释其语法功能。
 
 ## 步骤三：句式结构诊断
-1.  **句式类型判定**：根据文言语法规范，判断句子是否为特殊句式，包括：判断句（……者……也）、被动句（见、为、于、被）、省略句（省略主语、宾语、介词）、倒装句（宾语前置、定语后置、介词结构后置）、固定句式（如奈……何、如……何、无乃……乎等）。
-2.  **结构解析**：若判定为特殊句式，需拆解句子成分，清晰解释其特殊结构的构成逻辑。若不属于任何特殊句式，则标注为“一般陈述句”。
+1.  **句式类型判定**：根据文言语法规范，判断句子是否为特殊句式，包括：
+    - 判断句（……者……也、乃、即、则、为、是、非等）
+    - 被动句（见、于、为、为…所、被）
+    - 省略句（省略主语、宾语、介词、谓语）
+    - 倒装句：必须细分为以下三类：
+        * 宾语前置（疑问代词作宾语前置、否定句代词宾语前置、之/是提宾）
+        * 定语后置（中心词+之+定语+者、中心词+定语+者）
+        * **状语后置**（也叫介词结构后置）：标志为"动 + 于/乎/以 + 宾"，如"于长沙"修饰"屈"，"于海曲"修饰"窜"。
+    - 固定句式（如奈……何、如……何、无乃……乎、不亦……乎、得无……乎等）
+
+2.  **结构解析**：若判定为特殊句式，需拆解句子成分，清晰解释其特殊结构的构成逻辑。例如状语后置句，应明确指出"介宾短语在动词后作状语，现代汉语应前置"。若不属于任何特殊句式，则标注为"一般陈述句"。
+
+**特别注意**：
+- 当看到"动词 + 于 + 名词"结构时，应优先判定为状语后置，除非上下文明确为被动句（"见……于"）或另有解释。
+- 对偶、排比等修辞不影响句式类型判定，需根据语法结构独立判断。
 
 ## 步骤四：语序还原与翻译
 1.  **现代语序**：此步骤为**纯字面调整**。仅对原句的词语顺序进行调整，以符合现代汉语的语法习惯（如将倒装的宾语、后置的状语或定语复位），**绝对不替换、不增删任何原文词语**。
 2.  **现代翻译**：此步骤为**意译**。基于现代语序，在忠实于原文意思的前提下，通过替换词汇（如将古义换为今义）、补充省略成分等方式，将句子转化为流畅、自然、符合现代语境的表达。
 
 # 输出格式与规范
-您的最终输出必须严格遵循以下结构化格式，各部分清晰分离，**所有标题后的冒号均为中文全角符号（：）**：
+您的最终输出必须严格遵循以下结构化格式，各部分清晰分离，**所有标题后的冒号均为中文全角符号（：）**，**禁止使用Markdown加粗标记（**）**：
 
 【句子原文】
 [用户输入的原始句子，不做任何修改]
 
 【断句结果】
-*   **状态**：[原文已标点，无需断句 / 已完成断句]
-*   **标注规范文言标点的完整文句**：[若状态为“已完成断句”，则输出添加了现代标点后的完整句子；若为“原文已标点”，则此栏无需输出或直接复制原文]
-*   **断句依据**：[若状态为“已完成断句”，在此简要说明关键断句点及理由；若为“原文已标点”，此栏可省略]
+- 状态：[原文已标点，无需断句 / 已完成断句]
+- 标注规范文言标点的完整文句：[若状态为"已完成断句"，则输出添加了现代标点后的完整句子；若为"原文已标点"，则此栏无需输出或直接复制原文]
+- 断句依据：[若状态为"已完成断句"，在此简要说明关键断句点及理由；若为"原文已标点"，此栏可省略]
 
 【虚词分析】
-（请严格按照以下列表格式输出，每个虚词项独立一行，禁止使用项目符号或星号，每个虚词项前必须使用阿拉伯数字加点号如“1.”）
+（请严格按照以下列表格式输出，每个虚词项独立一行，禁止使用项目符号或星号，每个虚词项前必须使用阿拉伯数字加点号如"1."）
 1. [虚词]：词性为[精确词性]，功能是[语法功能]，此处可译为"[现代释义]"
 2. [虚词]：词性为[精确词性]，功能是[语法功能]，此处可译为"[现代释义]"
 ...
 
 【句式分析】
-*   **句式类型**：[判断句/被动句/省略句/宾语前置/定语后置/状语后置/固定句式/一般陈述句]
-*   **结构解析**：[简要说明句子结构，如果是特殊句式，需拆解其构成]
+- 句式类型：[判断句/被动句/省略句/宾语前置/定语后置/状语后置/固定句式/一般陈述句，必须选择其一，不可空缺]
+- 结构解析：[简要说明句子结构，如果是特殊句式，需拆解其构成]
 
 【现代语序】
 [仅调整词序后的句子，保留原文字词，不得增删或替换]
@@ -103,11 +116,12 @@ class ClassicalChineseAnalyzer:
 [意译后的通顺现代汉语]
 
 # 关键执行原则
-1.  **严谨区分**：严格区分“现代语序”与“现代翻译”两个步骤，前者是字面调序，不得增删字词；后者是语义翻译，可适当补充替换。
+1.  **严谨区分**：严格区分"现代语序"与"现代翻译"两个步骤，前者是字面调序，不得增删字词；后者是语义翻译，可适当补充替换。
 2.  **虚词穷尽**：必须分析句中出现的每一个虚词，不得遗漏。对于多义词，需结合上下文选择最准确的解释。
-3.  **格式统一**：输出格式必须与上述模板完全一致，所有标题均为中文全角括号【】，冒号使用中文全角符号（：），虚词分析部分必须使用阿拉伯数字加点号编号。
-4.  **断句明确**：断句结果部分必须包含“标注规范文言标点的完整文句”和“断句依据”两个子项，每个子项前使用*号标记。
-5.  **翻译忠实**：忠于原意，不增删主观内容，不曲解语境。"""
+3.  **格式统一**：输出格式必须与上述模板完全一致，所有标题均为中文全角括号【】，冒号使用中文全角符号（：），虚词分析部分必须使用阿拉伯数字加点号编号，句式分析部分必须使用短横线（-）作为项目符号。
+4.  **禁止加粗**：全文禁止使用Markdown加粗语法（**），保持纯文本格式。
+5.  **断句明确**：断句结果部分必须包含"标注规范文言标点的完整文句"和"断句依据"两个子项，每个子项前使用短横线（-）标记。
+6.  **翻译忠实**：忠于原意，不增删主观内容，不曲解语境。"""
 
         # 文言虚词数据库（用于验证和补充）
         self.function_words_db = {
@@ -174,7 +188,7 @@ class ClassicalChineseAnalyzer:
                     {'role': 'user', 'content': prompt}
                 ],
                 temperature=0.1,
-                max_tokens=2000,  # 增加token限制以适应更详细的分析
+                max_tokens=3000,  # 增加token限制以适应更详细的分析
                 result_format='text'
             )
 
@@ -206,148 +220,122 @@ class ClassicalChineseAnalyzer:
             'modern_translation': ''
         }
 
-        # 提取句子原文 - 增强兼容性
+        # ---------- 句子原文 ----------
         sentence_match = re.search(r'[【\[]?\s*句子原文\s*[】\]]?\s*\n?(.*?)(?=\n[【\[]|$)', result,
                                    re.DOTALL | re.IGNORECASE)
         if sentence_match:
             parsed_data['original_sentence'] = sentence_match.group(1).strip()
         else:
-            # 备用：尝试匹配开头没有标题的内容
             lines = result.strip().split('\n')
             if lines:
                 parsed_data['original_sentence'] = lines[0].strip()
 
-        # 提取断句结果 - 增强兼容性
+        # ---------- 断句结果 ----------
         punctuation_section = re.search(r'[【\[]?\s*断句结果\s*[】\]]?\s*\n(.*?)(?=\n[【\[]|$)', result,
                                         re.DOTALL | re.IGNORECASE)
-
         if punctuation_section:
             punctuation_content = punctuation_section.group(1).strip()
-
-            # 情况1：原文已有标点，无需断句
             if "原文已标点" in punctuation_content or "无需断句" in punctuation_content:
                 parsed_data['punctuation_result']['has_punctuation'] = True
                 parsed_data['punctuation_result']['annotated_sentence'] = "原文已标点，无需断句"
                 parsed_data['punctuation_result']['punctuation_basis'] = ""
-
-            # 情况2：需要断句
             else:
                 parsed_data['punctuation_result']['has_punctuation'] = False
-
-                # 提取标注后的文句 - 多种写法兼容
+                # 提取标注文句
                 annotated_match = None
-
-                # 尝试匹配各种可能的写法
                 patterns = [
                     r'[＊*]*\s*标注规范文言标点的完整文句\s*[：:]\s*(.*?)(?=\n[＊*]?\s*断句依据|$)',
                     r'[＊*]*\s*标注文言标点的完整文句\s*[：:]\s*(.*?)(?=\n[＊*]?\s*断句依据|$)',
                     r'[＊*]*\s*文句\s*[：:]\s*(.*?)(?=\n[＊*]?\s*断句依据|$)',
                     r'[＊*]*\s*完整文句\s*[：:]\s*(.*?)(?=\n|$)',
                 ]
-
                 for pattern in patterns:
                     annotated_match = re.search(pattern, punctuation_content, re.DOTALL)
                     if annotated_match:
                         parsed_data['punctuation_result']['annotated_sentence'] = annotated_match.group(1).strip()
                         break
-
-                # 如果都没匹配到，尝试提取断句依据之前的所有内容作为文句
                 if not parsed_data['punctuation_result']['annotated_sentence']:
                     basis_split = re.split(r'[＊*]?\s*断句依据\s*[：:]', punctuation_content)
                     if len(basis_split) > 1:
                         annotated_sentence = basis_split[0].strip()
-                        # 过滤掉括号注释等无关内容
                         annotated_sentence = re.sub(r'[（(].*?[）)]', '', annotated_sentence).strip()
                         parsed_data['punctuation_result']['annotated_sentence'] = annotated_sentence
-
                 # 提取断句依据
                 basis_match = re.search(r'[＊*]?\s*断句依据\s*[：:]\s*(.*?)(?=\n[＊*]?\s*|$)', punctuation_content,
                                         re.DOTALL)
                 if basis_match:
                     parsed_data['punctuation_result']['punctuation_basis'] = basis_match.group(1).strip()
 
-        # 提取虚词分析 - 增强兼容性
+        # ---------- 虚词分析 ----------
         func_word_match = re.search(r'[【\[]?\s*虚词分析\s*[】\]]?\s*\n?(.*?)(?=\n[【\[]|$)', result,
                                     re.DOTALL | re.IGNORECASE)
         if func_word_match:
             parsed_data['function_words'] = func_word_match.group(1).strip()
         else:
-            # 备用匹配
             func_word_match2 = re.search(r'虚词分析[：:]\s*\n?(.*?)(?=\n[【\[]|\n句式分析|$)', result,
                                          re.DOTALL | re.IGNORECASE)
             if func_word_match2:
                 parsed_data['function_words'] = func_word_match2.group(1).strip()
 
-        # ===== 重点修复：提取现代翻译 =====
-        # 方法1：从【现代翻译】标题后提取所有内容直到结尾
+        # ---------- 句式分析提取（直接全局匹配，兼容性更强）----------
+        # 提取【句式分析】区块内容
+        section_match = re.search(r'【句式分析】(.*?)(?=【|$)', result, re.DOTALL | re.IGNORECASE)
+        if section_match:
+            section_content = section_match.group(1).strip()
+            # 在区块内提取句式类型
+            type_match = re.search(r'句式类型\s*[：:]\s*(.*?)(?=\n|$)', section_content, re.IGNORECASE)
+            if type_match:
+                parsed_data['sentence_pattern']['type'] = type_match.group(1).strip()
+            # 在区块内提取结构解析
+            analysis_match = re.search(r'结构解析\s*[：:]\s*(.*?)(?=\n|$)', section_content, re.IGNORECASE)
+            if analysis_match:
+                parsed_data['sentence_pattern']['analysis'] = analysis_match.group(1).strip()
+        else:
+            # 兜底：全局搜索（兼容没有【】的情况）
+            type_global = re.search(r'句式类型\s*[：:]\s*(.*?)(?=\n|$)', result, re.IGNORECASE)
+            if type_global:
+                parsed_data['sentence_pattern']['type'] = type_global.group(1).strip()
+            analysis_global = re.search(r'结构解析\s*[：:]\s*(.*?)(?=\n|$)', result, re.IGNORECASE)
+            if analysis_global:
+                parsed_data['sentence_pattern']['analysis'] = analysis_global.group(1).strip()
+
+        # 提取【现代语序】区块
+        order_section = re.search(r'【现代语序】(.*?)(?=【|$)', result, re.DOTALL | re.IGNORECASE)
+        if order_section:
+            parsed_data['sentence_pattern']['modern_order'] = order_section.group(1).strip()
+        else:
+            order_global = re.search(r'现代语序\s*[：:]\s*(.*?)(?=\n|$)', result, re.DOTALL | re.IGNORECASE)
+            if order_global:
+                parsed_data['sentence_pattern']['modern_order'] = order_global.group(1).strip()
+
+        # ---------- 现代翻译 ----------
         translation_match = re.search(r'[【\[]?\s*现代翻译\s*[】\]]?\s*[：:]\s*(.*?)(?=\n[【\[]|$)', result,
                                       re.DOTALL | re.IGNORECASE)
         if translation_match:
             parsed_data['modern_translation'] = translation_match.group(1).strip()
         else:
-            # 方法2：查找"现代翻译："之后的内容（可能没有换行）
             translation_patterns = [
                 r'现代翻译[：:]\s*(.+?)(?=\n[【\[]|\n\n|$)',
                 r'现代翻译[：:]\s*(.+?)$',
                 r'[【\[]现代翻译[】\]]\s*(.+?)$',
             ]
-
             for pattern in translation_patterns:
                 translation_match = re.search(pattern, result, re.DOTALL | re.IGNORECASE)
                 if translation_match:
                     parsed_data['modern_translation'] = translation_match.group(1).strip()
                     break
 
-        # 方法3：如果还没找到，尝试获取最后一个可能的内容块
+        # 后备：在段落中查找包含“翻译”的内容
         if not parsed_data['modern_translation']:
-            # 按【标题】拆分
-            sections = re.split(r'[【\[]', result)
-            for i, section in enumerate(sections):
-                if '现代翻译' in section or '翻译' in section:
-                    # 提取冒号后的内容
-                    content_match = re.search(r'[：:]\s*(.+?)$', section, re.DOTALL)
-                    if content_match:
-                        parsed_data['modern_translation'] = content_match.group(1).strip()
-                        break
-
-        # 方法4：最后兜底 - 如果以上都失败，尝试用更宽松的方式匹配
-        if not parsed_data['modern_translation']:
-            # 查找包含"翻译"的段落
             paragraphs = result.split('\n\n')
             for para in paragraphs:
-                if '翻译' in para and len(para) < 200:  # 合理长度的翻译段落
-                    # 提取冒号后的内容
+                if '翻译' in para and len(para) < 200:
                     parts = re.split(r'[：:]', para)
                     if len(parts) > 1:
                         candidate = parts[-1].strip()
-                        if candidate and len(candidate) < 100:  # 合理长度
+                        if candidate and len(candidate) < 100:
                             parsed_data['modern_translation'] = candidate
                             break
-
-        # 提取句式分析部分
-        # 首先尝试完整的匹配
-        full_match = re.search(
-            r'[【\[]?\s*句式分析\s*[】\]]?\s*\n.*?[＊*]?\s*句式类型\s*[：:]\s*(.*?)\n.*?[＊*]?\s*结构解析\s*[：:]\s*(.*?)\n.*?[＊*]?\s*现代语序\s*[：:]\s*(.*?)(?=\n[＊*]?\s*现代翻译|\n[【\[]|$)',
-            result, re.DOTALL | re.IGNORECASE)
-
-        if full_match:
-            parsed_data['sentence_pattern']['type'] = full_match.group(1).strip()
-            parsed_data['sentence_pattern']['analysis'] = full_match.group(2).strip()
-            parsed_data['sentence_pattern']['modern_order'] = full_match.group(3).strip()
-        else:
-            # 分段匹配
-            type_match = re.search(r'[＊*]?\s*句式类型\s*[：:]\s*(.*?)(?=\n|$)', result)
-            if type_match:
-                parsed_data['sentence_pattern']['type'] = type_match.group(1).strip()
-
-            analysis_match = re.search(r'[＊*]?\s*结构解析\s*[：:]\s*(.*?)(?=\n|$)', result)
-            if analysis_match:
-                parsed_data['sentence_pattern']['analysis'] = analysis_match.group(1).strip()
-
-            order_match = re.search(r'[＊*]?\s*现代语序\s*[：:]\s*(.*?)(?=\n[＊*]?\s*现代翻译|\n[【\[]|$)', result,
-                                    re.DOTALL)
-            if order_match:
-                parsed_data['sentence_pattern']['modern_order'] = order_match.group(1).strip()
 
         return parsed_data
 
